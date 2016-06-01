@@ -1,0 +1,7 @@
+{
+    "name":"default",
+    "upload": {
+          "url": "http://www.samplewebsite.com/uploadurl"
+    }
+
+}

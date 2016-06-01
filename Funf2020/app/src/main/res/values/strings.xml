@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Funf2020</string>
+
+    <string name="default_pipeline">
+        {
+            "name":"default",
+            "upload": {
+                      "url": "http://www.samplewebsite.com/uploadurl"
+            }
+
+         }
+    </string>
+</resources>
