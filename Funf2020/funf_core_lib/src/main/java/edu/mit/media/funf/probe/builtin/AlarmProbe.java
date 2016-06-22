@@ -99,14 +99,14 @@ public class AlarmProbe extends Base implements ContinuousProbe, Runnable {
                     long timeToNextAlarmMillis = intervalMillis - intervalDeltaMillis;
                     offsetMillis = currentMillis + timeToNextAlarmMillis;
                 }
-                FunfManager.registerAlarm(getContext(), probeConfig, offsetMillis, intervalMillis, exact);    
+                FunfManager.registerAlarm(getContext(), probeConfig, offsetMillis, intervalMillis, exact, id);
             } else {  // Type 2
-                FunfManager.registerAlarm(getContext(), probeConfig, currentMillis, intervalMillis, exact);
+                FunfManager.registerAlarm(getContext(), probeConfig, currentMillis, intervalMillis, exact, id);
             }   
         } else {  // Type 3
             assert (offsetMillis >= 0); // Offset must be valid.
             // If offset is in the past, alarm will fire immediately.
-            FunfManager.registerAlarm(getContext(), probeConfig, offsetMillis, intervalMillis, exact);
+            FunfManager.registerAlarm(getContext(), probeConfig, offsetMillis, intervalMillis, exact, id);
         }
         Log.d(LogUtil.TAG, "alarm set");
     }

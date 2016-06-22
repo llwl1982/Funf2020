@@ -78,7 +78,7 @@ public class BasicPipeline implements Pipeline, DataListener {
     protected ConfigUpdater update = null;
     
     @Configurable
-    protected List<StartableDataSource> data = null;
+    public List<StartableDataSource> data = null;
     
     @Configurable
     protected Map<String, StartableDataSource> schedules = null;

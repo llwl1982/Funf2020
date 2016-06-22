@@ -1,14 +1,9 @@
 {"@type":"edu.mit.media.funf.pipeline.BasicPipeline",
     "name":"default",
-    "archive": {
-        "@schedule": {"interval": 500}
-    },
     "version":1,
-    "upload": {
-              "url": "http://10.5.1.180:8000/data",
-              "@schedule": {"interval": 30}
-    },
     "data":[
-    "edu.mit.media.funf.probe.builtin.BatteryProbe"
-    ]
+                 {"@type": "edu.mit.media.funf.probe.builtin.WifiProbe",
+                  "@schedule": {"interval": 30, "duration": 10},
+                  "sensorDelay": "NORMAL"}
+           ]
 }

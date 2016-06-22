@@ -27,6 +27,8 @@ package edu.mit.media.funf.datasource;
 
 import com.google.gson.JsonElement;
 
+import java.util.UUID;
+
 import edu.mit.media.funf.json.IJsonObject;
 import edu.mit.media.funf.probe.Probe.DataListener;
 
@@ -36,6 +38,8 @@ public class StartableDataSource implements Startable, DataSource {
         OFF,
         ON
     };
+
+    protected String id;
 
     protected State currentState = State.OFF;
 

@@ -77,6 +77,10 @@ public class PipelineFactory implements RuntimeTypeAdapterFactory {
         return delegateAdapter;
     }
 
+    /**
+     * 重新安排 “Schedule”元素在JsonTree中的位置
+     * @param <T>
+     */
     private static class ScheduleAnnotatedTypeAdapter<T> extends TypeAdapter<T> {
 
         private TypeAdapter<T> delegateAdapter;

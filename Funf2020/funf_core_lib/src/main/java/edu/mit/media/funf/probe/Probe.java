@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import android.content.Context;
 import android.os.Handler;
@@ -361,12 +362,14 @@ public interface Probe {
 	public abstract class Base implements Probe, BaseProbeKeys {
 
 		private Context context;
+		public String id;
 
 		/**
 		 * No argument constructor requires that setContext be called manually.
 		 */
 		public Base() {
 			state = State.DISABLED;
+			id = UUID.randomUUID().toString();
 		}
 
 		public Base(Context context) {

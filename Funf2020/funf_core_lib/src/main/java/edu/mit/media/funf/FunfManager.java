@@ -69,8 +69,11 @@ import edu.mit.media.funf.config.DefaultScheduleSerializer;
 import edu.mit.media.funf.config.HttpConfigUpdater;
 import edu.mit.media.funf.config.ListenerInjectorTypeAdapterFactory;
 import edu.mit.media.funf.config.SingletonTypeAdapterFactory;
+import edu.mit.media.funf.datasource.CompositeDataSource;
+import edu.mit.media.funf.datasource.ProbeDataSource;
 import edu.mit.media.funf.datasource.Startable;
 import edu.mit.media.funf.datasource.StartableDataSource;
+import edu.mit.media.funf.pipeline.BasicPipeline;
 import edu.mit.media.funf.pipeline.Pipeline;
 import edu.mit.media.funf.pipeline.PipelineFactory;
 import edu.mit.media.funf.probe.Probe;
@@ -95,6 +98,7 @@ public class FunfManager extends Service {
 
     private static final String 
     DISABLED_PIPELINE_LIST = "__DISABLED__";
+    public static final String KEY_EXTRA = "KEY_EXTRA";
 
     private Handler handler;
     private SharedPreferences prefs;
@@ -244,15 +248,68 @@ public class FunfManager extends Service {
                 }
             } else if (ALARM_TYPE.equals(type)) {
                 // Handle registered alarms
-                String probeConfig = getComponentName(componentUri);
-                final Probe probe = getGson().fromJson(probeConfig, Probe.class); 
-                if (probe instanceof Runnable) {
+                Probe probe = null;
+
+                String id = intent.getStringExtra(KEY_EXTRA);
+
+                if (id != null) {
+                    probe = findProbe(id);
+                } else {
+                    String probeConfig = getComponentName(componentUri);
+                    probe = getGson().fromJson(probeConfig, Probe.class);
+                }
+
+                if (probe != null && probe instanceof Runnable) {
                     handler.post((Runnable)probe);
                 }
             }
 
         }
         return Service.START_FLAG_RETRY; // TODO: may want the last intent always redelivered to make sure system starts up
+    }
+
+    private Probe findProbe(String probeID) {
+
+        Set<String> keys = pipelines.keySet();
+        for (String key: keys) {
+            Pipeline p = pipelines.get(key);
+
+            if (!(p instanceof BasicPipeline)) {
+                continue;
+            }
+
+            BasicPipeline bp = (BasicPipeline) p;
+
+            if (bp.data == null || bp.data.size() == 0) {
+                continue;
+            }
+
+            for (StartableDataSource s : bp.data) {
+                if (!(s instanceof CompositeDataSource)) {
+                    continue;
+                }
+
+                CompositeDataSource c = (CompositeDataSource) s;
+
+                if (c.source == null || !(c.source instanceof ProbeDataSource)) {
+                    continue;
+                }
+
+                ProbeDataSource ps = (ProbeDataSource) c.source;
+
+                if (ps.source == null || !(ps.source instanceof Probe.Base)) {
+                    continue;
+                }
+
+                Probe.Base b = (Probe.Base) ps.source;
+
+                if (probeID.equals(b.id)) {
+                    return b;
+                }
+            }
+        }
+
+        return null;
     }
 
     private Bundle getMetadata() {
@@ -449,11 +506,18 @@ public class FunfManager extends Service {
     }
 
     public static void registerAlarm(Context context, String probeConfig, Long start, Long interval, boolean exact) {
+        registerAlarm(context, probeConfig, start, interval, exact, null);
+    }
+
+    public static void registerAlarm(Context context, String probeConfig, Long start, Long interval, boolean exact, String extra) {
         AlarmManager alarmManager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
-        
+
         Intent intent = getFunfIntent(context, ALARM_TYPE, probeConfig, "");
+        if (extra != null && !extra.equals("")) {
+            intent.putExtra(KEY_EXTRA, extra);
+        }
         PendingIntent pendingIntent = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        
+
         if (start == null)
             start = 0L;
 
