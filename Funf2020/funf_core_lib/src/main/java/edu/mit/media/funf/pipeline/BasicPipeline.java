@@ -27,6 +27,7 @@ package edu.mit.media.funf.pipeline;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -44,6 +45,8 @@ import edu.mit.media.funf.action.RunUploadAction;
 import edu.mit.media.funf.action.WriteDataAction;
 import edu.mit.media.funf.config.ConfigUpdater;
 import edu.mit.media.funf.config.Configurable;
+import edu.mit.media.funf.datasource.CompositeDataSource;
+import edu.mit.media.funf.datasource.ProbeDataSource;
 import edu.mit.media.funf.datasource.StartableDataSource;
 import edu.mit.media.funf.json.IJsonObject;
 import edu.mit.media.funf.json.JsonUtils;
@@ -123,9 +126,11 @@ public class BasicPipeline implements Pipeline, DataListener {
     
     protected void setupDataSources() {
         if (enabled == false) {
-            
-            for (StartableDataSource dataSource: data) {
-                dataSource.setListener((DataListener)writeAction);
+
+            if (data != null) {
+                for (StartableDataSource dataSource : data) {
+                    dataSource.setListener((DataListener) writeAction);
+                }
             }
             
             if (schedules != null) {
@@ -141,9 +146,11 @@ public class BasicPipeline implements Pipeline, DataListener {
                     schedules.get("upload").start();
                 }
             }
-            
-            for (StartableDataSource dataSource: data) {
-                dataSource.start();
+
+            if (data != null) {
+                for (StartableDataSource dataSource : data) {
+                    dataSource.start();
+                }
             }
             
             enabled = true;
@@ -297,5 +304,80 @@ public class BasicPipeline implements Pipeline, DataListener {
 
     public SQLiteOpenHelper getDatabaseHelper() {
         return databaseHelper;
+    }
+
+    public Probe findProbe(String probeID) {
+        Probe p = findProbeFromSchedules(probeID);
+
+        if (p != null) {
+            return p;
+        }
+
+        p = findProbeFromData(probeID);
+
+        if (p != null) {
+            return p;
+        }
+
+        return null;
+    }
+
+    private Probe findProbeFromData(String probeID) {
+
+        if (data == null || data.size() == 0) {
+            return null;
+        }
+
+        for (StartableDataSource s : data) {
+
+            Probe b = findProbe(probeID, s);
+
+            if (b != null) {
+                return b;
+            }
+        }
+
+        return null;
+    }
+
+    private Probe findProbeFromSchedules(String probeID) {
+        Set<String> keys = schedules.keySet();
+        for (String key: keys) {
+            StartableDataSource s = schedules.get(key);
+
+            Probe b = findProbe(probeID, s);
+
+            if (b != null) {
+                return b;
+            }
+        }
+
+        return null;
+    }
+
+    private Probe.Base findProbe(String probeID, StartableDataSource source) {
+        if (!(source instanceof CompositeDataSource)) {
+            return null;
+        }
+
+        CompositeDataSource c = (CompositeDataSource) source;
+
+        if (c.source == null || !(c.source instanceof ProbeDataSource)) {
+            return null;
+        }
+
+        ProbeDataSource ps = (ProbeDataSource) c.source;
+
+        if (ps.source == null || !(ps.source instanceof Probe.Base)) {
+            return null;
+        }
+
+        Probe.Base b = (Probe.Base) ps.source;
+
+        if (probeID.equals(b.id)) {
+            return b;
+        }
+
+        return null;
     }
 }

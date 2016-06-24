@@ -254,7 +254,9 @@ public class FunfManager extends Service {
 
                 if (id != null) {
                     probe = findProbe(id);
-                } else {
+                }
+
+                if (probe == null) {
                     String probeConfig = getComponentName(componentUri);
                     probe = getGson().fromJson(probeConfig, Probe.class);
                 }
@@ -280,32 +282,10 @@ public class FunfManager extends Service {
 
             BasicPipeline bp = (BasicPipeline) p;
 
-            if (bp.data == null || bp.data.size() == 0) {
-                continue;
-            }
+            Probe b = bp.findProbe(probeID);
 
-            for (StartableDataSource s : bp.data) {
-                if (!(s instanceof CompositeDataSource)) {
-                    continue;
-                }
-
-                CompositeDataSource c = (CompositeDataSource) s;
-
-                if (c.source == null || !(c.source instanceof ProbeDataSource)) {
-                    continue;
-                }
-
-                ProbeDataSource ps = (ProbeDataSource) c.source;
-
-                if (ps.source == null || !(ps.source instanceof Probe.Base)) {
-                    continue;
-                }
-
-                Probe.Base b = (Probe.Base) ps.source;
-
-                if (probeID.equals(b.id)) {
-                    return b;
-                }
+            if (b != null) {
+                return b;
             }
         }
 
