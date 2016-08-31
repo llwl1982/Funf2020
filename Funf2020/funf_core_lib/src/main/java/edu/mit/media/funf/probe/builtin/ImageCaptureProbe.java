@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import android.Manifest;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -58,7 +59,7 @@ import edu.mit.media.funf.util.NameGenerator;
 import edu.mit.media.funf.util.NameGenerator.SystemUniqueTimestampNameGenerator;
 
 @DisplayName("Image Capture Probe")
-@RequiredPermissions({android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.CAMERA})
+@RequiredPermissions({android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.CAMERA, Manifest.permission.SYSTEM_ALERT_WINDOW})
 @RequiredFeatures("android.hardware.camera")
 @Schedule.DefaultSchedule(interval=1800)
 public class ImageCaptureProbe extends ImpulseProbe implements PassiveProbe, HighBandwidthKeys, SurfaceHolder.Callback {

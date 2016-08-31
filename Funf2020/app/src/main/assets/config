@@ -1,7 +1,17 @@
-{
+{"@type":"edu.mit.media.funf.pipeline.BasicPipeline",
     "name":"default",
-    "upload": {
-          "url": "http://www.samplewebsite.com/uploadurl"
-    }
+    "version":1,
+    "archive": {
+                    "@schedule": {"interval": 500}
+        },
+     "upload": {
+                              "url": "http://10.5.4.243:8000/data",
+                              "@schedule": {"interval": 120}
+                },
+     "data": [
+                    {"@type": "edu.mit.media.funf.probe.builtin.AudioFeaturesProbe",
+                     "@schedule": {"interval": 30, "duration": 10},
+                     "sensorDelay": "NORMAL"}
+                ]
 
 }

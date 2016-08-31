@@ -546,7 +546,7 @@ public class FunfManager extends Service {
         return componentUri.getFragment();
     }
 
-    private static Intent getFunfIntent(Context context, String type, String component, String action) {
+    public static Intent getFunfIntent(Context context, String type, String component, String action) {
         return getFunfIntent(context, type, getComponentUri(component, action));
     }
 

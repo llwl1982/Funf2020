@@ -592,7 +592,7 @@ public interface Probe {
 			handler.sendMessage(handler.obtainMessage(START_MESSAGE));
 		}
 
-		protected final void stop() {
+		public final void stop() {
 			ensureLooperThreadExists();
 			handler.sendMessage(handler.obtainMessage(STOP_MESSAGE));
 		}

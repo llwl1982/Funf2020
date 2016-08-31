@@ -10,11 +10,9 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,21 +24,20 @@ import edu.mit.media.funf.FunfManager;
 import edu.mit.media.funf.json.IJsonObject;
 import edu.mit.media.funf.pipeline.BasicPipeline;
 import edu.mit.media.funf.probe.Probe;
-import edu.mit.media.funf.probe.Probe.DataListener;
-import edu.mit.media.funf.probe.builtin.*;
+import edu.mit.media.funf.probe.builtin.AudioFeaturesProbe;
 import edu.mit.media.funf.storage.NameValueDatabaseHelper;
 
-
-public class MainActivity extends AppCompatActivity implements DataListener {
+/**
+ * Created by Rocky on 16/8/30.
+ */
+public class AudioRecordActivity extends AppCompatActivity implements Probe.DataListener {
 
 
 
     public static final String PIPELINE_NAME = "default";
     private FunfManager funfManager;
-    private BasicPipeline pipeline;
-  //  private WifiProbe wifiProbe;
-    private Probe.Base mTestProbe;
-//    private SimpleLocationProbe locationProbe;
+    private BasicPipeline pipeline;;
+    private AudioFeaturesProbe mAudioFeatureProbe;
     private CheckBox enabledCheckbox;
     private Button archiveButton, scanNowButton;
     private Button uploadButton;
@@ -53,15 +50,13 @@ public class MainActivity extends AppCompatActivity implements DataListener {
 
             Gson gson = funfManager.getGson();
 
-            mTestProbe = gson.fromJson(new JsonObject(), AudioFeaturesProbe.class);
-     //       locationProbe = gson.fromJson(new JsonObject(), SimpleLocationProbe.class);
+            mAudioFeatureProbe = gson.fromJson(new JsonObject(), AudioFeaturesProbe.class);
             pipeline = (BasicPipeline) funfManager.getRegisteredPipeline(PIPELINE_NAME);
-            mTestProbe.registerPassiveListener(MainActivity.this);
-     //       locationProbe.registerPassiveListener(MainActivity.this);
+            mAudioFeatureProbe.registerPassiveListener(AudioRecordActivity.this);
 
             // This checkbox enables or disables the pipeline
             enabledCheckbox.setChecked(pipeline.isEnabled());
-            enabledCheckbox.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+            enabledCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     if (funfManager != null) {
@@ -85,8 +80,6 @@ public class MainActivity extends AppCompatActivity implements DataListener {
         @Override
         public void onServiceDisconnected(ComponentName name) {
             funfManager = null;
-
-
         }
     };
 
@@ -94,26 +87,32 @@ public class MainActivity extends AppCompatActivity implements DataListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Used to make interface changes on main thread
+        handler = new Handler();
+
         // Displays the count of rows in the data
         dataCountView = (TextView) findViewById(R.id.dataCountText);
 
         scanNowButton = (Button) findViewById(R.id.scanNowButton);
         scanNowButton.setEnabled(false);
-        scanNowButton.setOnClickListener(new OnClickListener() {
+        scanNowButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (pipeline.isEnabled()) {
                     // Manually register the pipeline
-                    mTestProbe.registerListener(pipeline);
-  //                  locationProbe.registerListener(pipeline);
+                    mAudioFeatureProbe.registerListener(pipeline);
+                    stopAudioFeatureProbeDelay();
+
+                    scanNowButton.setEnabled(false);
+
                 } else {
                     Toast.makeText(getBaseContext(), "Pipeline is not enabled.", Toast.LENGTH_SHORT).show();
                 }
             }
         });
 
-        // Used to make interface changes on main thread
-        handler = new Handler();
+
 
         enabledCheckbox = (CheckBox) findViewById(R.id.enabledCheckbox);
         enabledCheckbox.setEnabled(false);
@@ -121,7 +120,7 @@ public class MainActivity extends AppCompatActivity implements DataListener {
         // Runs an archive if pipeline is enabled
         archiveButton = (Button) findViewById(R.id.archiveButton);
         archiveButton.setEnabled(false);
-        archiveButton.setOnClickListener(new OnClickListener() {
+        archiveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (pipeline.isEnabled()) {
@@ -149,12 +148,23 @@ public class MainActivity extends AppCompatActivity implements DataListener {
         bindService(new Intent(this, FunfManager.class), funfManagerConn, BIND_AUTO_CREATE);
     }
 
+    private void stopAudioFeatureProbeDelay() {
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mAudioFeatureProbe.stop();
+
+                scanNowButton.setEnabled(true);
+            }
+        }, 10 * 1000L);
+    }
+
     @Override
     public void onDataCompleted(IJsonObject probeConfig, JsonElement checkpoint) {
         updateScanCount();
         // Re-register to keep listening after probe completes.
-        mTestProbe.registerPassiveListener(this);
-  //      locationProbe.registerPassiveListener(this);
+        mAudioFeatureProbe.registerPassiveListener(this);
+        //      locationProbe.registerPassiveListener(this);
     }
 
     private static final String TOTAL_COUNT_SQL = "SELECT count(*) FROM " + NameValueDatabaseHelper.DATA_TABLE.name;
