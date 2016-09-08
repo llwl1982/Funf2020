@@ -44,13 +44,8 @@
  */
 package edu.mit.media.funf.util;
 
-import static edu.mit.media.funf.util.LogUtil.TAG;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import android.net.Uri;
+import android.util.Log;
 
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
@@ -60,8 +55,13 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpParams;
 
-import android.net.Uri;
-import android.util.Log;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+
+import static edu.mit.media.funf.util.LogUtil.TAG;
 
 public class IOUtil {
 	

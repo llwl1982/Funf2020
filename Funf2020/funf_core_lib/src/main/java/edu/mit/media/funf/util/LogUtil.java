@@ -23,12 +23,141 @@
  */
 package edu.mit.media.funf.util;
 
+import android.util.Log;
+
 public class LogUtil {
 
-	public static final String TAG = "Funf";
+	public final static String TAG = "funf";
 
-	private LogUtil() {
-		
+	private static boolean isDebug = true;
+
+	/**
+	 * 返回当前日志状态
+	 *
+	 * @return true-打印日志，false-不打印日志
+	 */
+	public static boolean getDebugFlag() {
+		return isDebug;
+	}
+
+	/**
+	 * 调用这个方法打开日志或关闭日志
+	 *
+	 * @param debug true-打开日志，false-关闭日志
+	 */
+	public static void setDebugFlag(boolean debug) {
+		isDebug = debug;
+	}
+
+	/**
+	 * 对应Log.d
+	 *
+	 * @param tag 日志标题
+	 * @param msg 日志内容
+	 */
+	public static void d(String tag, String msg) {
+		if (isDebug) {
+			Log.d(tag, msg);
+		}
+	}
+
+	/**
+	 * 对应Log.e
+	 *
+	 * @param tag 日志标题
+	 * @param msg 日志内容
+	 */
+	public static void e(String tag, String msg) {
+		if (isDebug) {
+			Log.e(tag, msg);
+		}
+	}
+
+	/**
+	 * 对应Log.e
+	 *
+	 * @param tag 日志标题
+	 * @param msg 日志内容
+	 * @param e   异常信息
+	 */
+	public static void e(String tag, String msg, Exception e) {
+		if (isDebug) {
+			Log.e(tag, msg, e);
+		}
+	}
+
+	/**
+	 * 对应Log.i
+	 *
+	 * @param tag 日志标题
+	 * @param msg 日志内容
+	 */
+	public static void i(String tag, String msg) {
+		if (isDebug) {
+			Log.i(tag, msg);
+		}
+	}
+
+	/**
+	 * 对应Log.w
+	 *
+	 * @param tag 日志标题
+	 * @param msg 日志内容
+	 */
+	public static void w(String tag, String msg) {
+		if (isDebug) {
+			Log.w(tag, msg);
+		}
+	}
+
+	/**
+	 * 对应Log.w
+	 *
+	 * @param tag 日志标题
+	 * @param msg 日志内容
+	 * @param e   异常信息
+	 */
+	public static void w(String tag, String msg, Exception e) {
+		if (isDebug) {
+			Log.w(tag, msg, e);
+		}
+	}
+
+	/**
+	 * 对应Log.w
+	 *
+	 * @param tag 日志标题
+	 * @param msg 日志内容
+	 * @param tr  异常信息
+	 */
+	public static void w(String tag, String msg, Throwable tr) {
+		if (isDebug) {
+			Log.w(tag, msg, tr);
+		}
+	}
+
+	/**
+	 * 对应Log.w
+	 *
+	 * @param tag 日志标题
+	 * @param e   异常信息
+	 */
+	public static void w(String tag, Exception e) {
+		if (isDebug) {
+			Log.w(tag, e);
+		}
+	}
+
+	/**
+	 * 对应Log.v
+	 *
+	 * @param tag 日志标题
+	 * @param msg 日志内容
+	 */
+	public static void v(String tag, String msg) {
+		if (isDebug) {
+			Log.v(tag, msg);
+		}
 	}
 	
 }

@@ -26,7 +26,24 @@ import edu.mit.media.funf.FunfManager;
 import edu.mit.media.funf.json.IJsonObject;
 import edu.mit.media.funf.pipeline.BasicPipeline;
 import edu.mit.media.funf.probe.Probe.DataListener;
+import edu.mit.media.funf.probe.builtin.AudioFeaturesProbe;
+import edu.mit.media.funf.probe.builtin.LinearAccelerationSensorProbe;
+import edu.mit.media.funf.probe.builtin.MagneticFieldSensorProbe;
+import edu.mit.media.funf.probe.builtin.OrientationSensorProbe;
+import edu.mit.media.funf.probe.builtin.PressureSensorProbe;
+import edu.mit.media.funf.probe.builtin.ProcessStatisticsProbe;
+import edu.mit.media.funf.probe.builtin.ProximitySensorProbe;
+import edu.mit.media.funf.probe.builtin.RotationVectorSensorProbe;
+import edu.mit.media.funf.probe.builtin.RunningApplicationsProbe;
+import edu.mit.media.funf.probe.builtin.ScreenProbe;
+import edu.mit.media.funf.probe.builtin.ServicesProbe;
 import edu.mit.media.funf.probe.builtin.SimpleLocationProbe;
+import edu.mit.media.funf.probe.builtin.SmsProbe;
+import edu.mit.media.funf.probe.builtin.TelephonyProbe;
+import edu.mit.media.funf.probe.builtin.TemperatureSensorProbe;
+import edu.mit.media.funf.probe.builtin.TimeOffsetProbe;
+import edu.mit.media.funf.probe.builtin.VideoCaptureProbe;
+import edu.mit.media.funf.probe.builtin.VideoMediaProbe;
 import edu.mit.media.funf.probe.builtin.WifiProbe;
 import edu.mit.media.funf.storage.NameValueDatabaseHelper;
 
@@ -40,12 +57,31 @@ import com.google.gson.JsonObject;
 public class MainActivity extends AppCompatActivity implements DataListener {
 
 
-
+	public static final long RECORD_LONG = 10 * 1000L;
     public static final String PIPELINE_NAME = "default";
     private FunfManager funfManager;
     private BasicPipeline pipeline;
-    private WifiProbe wifiProbe;
-    private SimpleLocationProbe locationProbe;
+//    private WifiProbe wifiProbe;
+//    private SimpleLocationProbe locationProbe;
+//	private SmsProbe mSmsProbe;
+//	private TelephonyProbe mTelephonyProbe;
+//	private ServicesProbe mServicesProbe;
+//	private ScreenProbe mScreenProbe;
+//	private LinearAccelerationSensorProbe mLinearAccelerationSensorProbe;
+//	private MagneticFieldSensorProbe mMagneticFieldSensorProbe;
+//	private OrientationSensorProbe mOrientationSensorProbe;
+//	private RotationVectorSensorProbe mRotationVectorSensorProbe;
+//	private ProximitySensorProbe mProximitySensorProbe;
+//	private TemperatureSensorProbe mTemperatureSensorProbe;
+//	private PressureSensorProbe mPressureSensorProbe;
+//	private RunningApplicationsProbe mProbe;
+//	private ProcessStatisticsProbe mProcessStatisticsProbe;
+//	private TimeOffsetProbe mTimeOffsetProbe;
+//	private VideoCaptureProbe mVideoCaptureProbe;
+//	private VideoMediaProbe mVideoMediaProbe;
+
+	private AudioFeaturesProbe mAudioFeaturesProbe;
+
     private CheckBox enabledCheckbox;
     private Button archiveButton, scanNowButton;
     private Button uploadButton;
@@ -58,11 +94,46 @@ public class MainActivity extends AppCompatActivity implements DataListener {
 
             Gson gson = funfManager.getGson();
 
-            wifiProbe = gson.fromJson(new JsonObject(), WifiProbe.class);
-            locationProbe = gson.fromJson(new JsonObject(), SimpleLocationProbe.class);
-            pipeline = (BasicPipeline) funfManager.getRegisteredPipeline(PIPELINE_NAME);
-            wifiProbe.registerPassiveListener(MainActivity.this);
-            locationProbe.registerPassiveListener(MainActivity.this);
+//            wifiProbe = gson.fromJson(new JsonObject(), WifiProbe.class);
+//            locationProbe = gson.fromJson(new JsonObject(), SimpleLocationProbe.class);
+//	        mSmsProbe = gson.fromJson(new JsonObject(), SmsProbe.class);
+//	        mTelephonyProbe = gson.fromJson(new JsonObject(), TelephonyProbe.class);
+//	        mServicesProbe = gson.fromJson(new JsonObject(), ServicesProbe.class);
+//	        mScreenProbe = gson.fromJson(new JsonObject(), ScreenProbe.class);
+//	        mLinearAccelerationSensorProbe = gson.fromJson(new JsonObject(), LinearAccelerationSensorProbe.class);
+//	        mMagneticFieldSensorProbe = gson.fromJson(new JsonObject(), MagneticFieldSensorProbe.class);
+//	        mOrientationSensorProbe = gson.fromJson(new JsonObject(), OrientationSensorProbe.class);
+//	        mRotationVectorSensorProbe = gson.fromJson(new JsonObject(), RotationVectorSensorProbe.class);
+//	        mProximitySensorProbe = gson.fromJson(new JsonObject(), ProximitySensorProbe.class);
+//	        mTemperatureSensorProbe = gson.fromJson(new JsonObject(), TemperatureSensorProbe.class);
+//	        mPressureSensorProbe = gson.fromJson(new JsonObject(), PressureSensorProbe.class);
+//	        mProbe = gson.fromJson(new JsonObject(), RunningApplicationsProbe.class);
+//	        mProcessStatisticsProbe = gson.fromJson(new JsonObject(), ProcessStatisticsProbe.class);
+//	        mTimeOffsetProbe = gson.fromJson(new JsonObject(), TimeOffsetProbe.class);
+//	        mVideoCaptureProbe = gson.fromJson(new JsonObject(), VideoCaptureProbe.class);
+//	        mVideoMediaProbe = gson.fromJson(new JsonObject(), VideoMediaProbe.class);
+	        mAudioFeaturesProbe = gson.fromJson(new JsonObject(), AudioFeaturesProbe.class);
+
+			        pipeline = (BasicPipeline) funfManager.getRegisteredPipeline(PIPELINE_NAME);
+//            wifiProbe.registerPassiveListener(MainActivity.this);
+//            locationProbe.registerPassiveListener(MainActivity.this);
+//	        mSmsProbe.registerPassiveListener(MainActivity.this);
+//	        mTelephonyProbe.registerPassiveListener(MainActivity.this);
+
+//	        mServicesProbe.registerPassiveListener(MainActivity.this);
+//	        mScreenProbe.registerPassiveListener(MainActivity.this);
+//	        mLinearAccelerationSensorProbe.registerPassiveListener(MainActivity.this);
+//	        mMagneticFieldSensorProbe.registerPassiveListener(MainActivity.this);
+//	        mOrientationSensorProbe.registerPassiveListener(MainActivity.this);
+//	        mRotationVectorSensorProbe.registerPassiveListener(MainActivity.this);
+//	        mProximitySensorProbe.registerPassiveListener(MainActivity.this);
+//	        mTemperatureSensorProbe.registerPassiveListener(MainActivity.this);
+//	        mPressureSensorProbe.registerPassiveListener(MainActivity.this);
+//	        mProbe.registerPassiveListener(MainActivity.this);
+//	        mProcessStatisticsProbe.registerPassiveListener(MainActivity.this);
+//	        mTimeOffsetProbe.registerPassiveListener(MainActivity.this);
+//	        mVideoCaptureProbe.registerPassiveListener(MainActivity.this);
+	        mAudioFeaturesProbe.registerPassiveListener(MainActivity.this);
 
             // This checkbox enables or disables the pipeline
             enabledCheckbox.setChecked(pipeline.isEnabled());
@@ -95,6 +166,17 @@ public class MainActivity extends AppCompatActivity implements DataListener {
         }
     };
 
+	private void stopAudioFeatureProbeDelay() {
+		handler.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				mAudioFeaturesProbe.stop();
+
+				scanNowButton.setEnabled(true);
+			}
+		}, RECORD_LONG);
+	}
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -109,8 +191,27 @@ public class MainActivity extends AppCompatActivity implements DataListener {
             public void onClick(View v) {
                 if (pipeline.isEnabled()) {
                     // Manually register the pipeline
-                    wifiProbe.registerListener(pipeline);
-                    locationProbe.registerListener(pipeline);
+//                    wifiProbe.registerListener(pipeline);
+//                    locationProbe.registerListener(pipeline);
+//	                mSmsProbe.registerListener(pipeline);
+//	                mTelephonyProbe.registerListener(pipeline);
+//	                mServicesProbe.registerListener(pipeline);
+//	                mScreenProbe.registerListener(pipeline);
+//	                mLinearAccelerationSensorProbe.registerListener(pipeline);
+//	                mMagneticFieldSensorProbe.registerListener(pipeline);
+//	                mOrientationSensorProbe.registerListener(pipeline);
+//	                mRotationVectorSensorProbe.registerListener(pipeline);
+//	                mProximitySensorProbe.registerListener(pipeline);
+//	                mTemperatureSensorProbe.registerListener(pipeline);
+//	                mPressureSensorProbe.registerListener(pipeline);
+//	                mProbe.registerListener(pipeline);
+//	                mProcessStatisticsProbe.registerListener(pipeline);
+//	                mTimeOffsetProbe.registerListener(pipeline);
+//	                mVideoCaptureProbe.registerListener(pipeline);
+	                mAudioFeaturesProbe.registerListener(pipeline);
+					// 停止录音
+	                stopAudioFeatureProbeDelay();
+
                 } else {
                     Toast.makeText(getBaseContext(), "Pipeline is not enabled.", Toast.LENGTH_SHORT).show();
                 }
@@ -158,8 +259,25 @@ public class MainActivity extends AppCompatActivity implements DataListener {
     public void onDataCompleted(IJsonObject probeConfig, JsonElement checkpoint) {
         updateScanCount();
         // Re-register to keep listening after probe completes.
-        wifiProbe.registerPassiveListener(this);
-        locationProbe.registerPassiveListener(this);
+//        wifiProbe.registerPassiveListener(this);
+//        locationProbe.registerPassiveListener(this);
+//	    mSmsProbe.registerPassiveListener(this);
+//	    mTelephonyProbe.registerPassiveListener(this);
+//	    mServicesProbe.registerPassiveListener(this);
+//	    mScreenProbe.registerPassiveListener(this);
+//	    mLinearAccelerationSensorProbe.registerPassiveListener(this);
+//	    mMagneticFieldSensorProbe.registerPassiveListener(this);
+//	    mOrientationSensorProbe.registerPassiveListener(this);
+//	    mRotationVectorSensorProbe.registerPassiveListener(this);
+//	    mProximitySensorProbe.registerPassiveListener(this);
+//	    mTemperatureSensorProbe.registerPassiveListener(this);
+//	    mPressureSensorProbe.registerPassiveListener(this);
+//	    mProbe.registerPassiveListener(this);
+//	    mProcessStatisticsProbe.registerPassiveListener(this);
+//	    mTimeOffsetProbe.registerPassiveListener(this);
+//	    mVideoCaptureProbe.registerPassiveListener(this);
+
+	    mAudioFeaturesProbe.registerPassiveListener(this);
     }
 
     private static final String TOTAL_COUNT_SQL = "SELECT count(*) FROM " + NameValueDatabaseHelper.DATA_TABLE.name;

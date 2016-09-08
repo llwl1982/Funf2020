@@ -186,7 +186,8 @@ public abstract class ContentProviderProbe extends ImpulseProbe {
 	}
 	
 	protected CursorCell<String> sensitiveStringCell() {
-		return new SensitiveCell(stringCell()); // TODO: do standard normalizing of string (i.e. remove everything bug word chars, and lower case)
+//		return new SensitiveCell(stringCell()); // TODO: do standard normalizing of string (i.e. remove everything bug word chars, and lower case)
+		return new StringCell();
 	}
 	
 	protected class SensitiveCell extends CursorCell<String> {

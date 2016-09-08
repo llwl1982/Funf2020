@@ -54,7 +54,7 @@ public class TimeOffsetProbe extends Base implements TimeOffsetKeys {
 	private static final BigDecimal SECONDS_1900_TO_1970 = new BigDecimal(2208988800L);
 	
 	@Configurable
-	private String host = "2.north-america.pool.ntp.org";
+	private String host = "s1a.time.edu.cn";
 	
 	@Configurable
 	private int port = 123;

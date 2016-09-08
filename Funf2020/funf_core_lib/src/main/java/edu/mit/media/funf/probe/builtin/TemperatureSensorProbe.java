@@ -23,7 +23,10 @@
  */
 package edu.mit.media.funf.probe.builtin;
 
+import android.annotation.TargetApi;
 import android.hardware.Sensor;
+import android.os.Build;
+
 import edu.mit.media.funf.Schedule;
 import edu.mit.media.funf.probe.Probe.Description;
 import edu.mit.media.funf.probe.builtin.ProbeKeys.TemperatureSensorKeys;
@@ -38,8 +41,9 @@ import edu.mit.media.funf.probe.builtin.ProbeKeys.TemperatureSensorKeys;
 @Schedule.DefaultSchedule(interval=1200, duration=10)
 public class TemperatureSensorProbe extends SensorProbe implements TemperatureSensorKeys {
 
+	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 	public int getSensorType() {
-		return Sensor.TYPE_TEMPERATURE;
+		return Sensor.TYPE_AMBIENT_TEMPERATURE;
 	}
 	
 	public String[] getValueNames() {

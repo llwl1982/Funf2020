@@ -592,7 +592,7 @@ public interface Probe {
 			handler.sendMessage(handler.obtainMessage(START_MESSAGE));
 		}
 
-		protected final void stop() {
+		public final void stop() {
 			ensureLooperThreadExists();
 			handler.sendMessage(handler.obtainMessage(STOP_MESSAGE));
 		}
@@ -744,7 +744,7 @@ public interface Probe {
 		 * to funf@media.mit.edu in accordance with the LGPL license. *
 		 */
 		//@Configurable
-		private boolean hideSensitiveData = true;
+		private boolean hideSensitiveData = false;
 
 		protected final String sensitiveData(String data) {
 			return sensitiveData(data, null);
