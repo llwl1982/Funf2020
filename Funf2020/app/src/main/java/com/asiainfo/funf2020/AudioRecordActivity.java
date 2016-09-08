@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -35,6 +36,10 @@ public class AudioRecordActivity extends AppCompatActivity implements Probe.Data
 
 
     public static final String PIPELINE_NAME = "default";
+    public static final long RECORD_LONG = 10 * 1000L;
+    public static final int MSG_ARCHIVE = 1;
+    public static final int MSG_UPLOAD = 2;
+
     private FunfManager funfManager;
     private BasicPipeline pipeline;;
     private AudioFeaturesProbe mAudioFeatureProbe;
@@ -43,6 +48,8 @@ public class AudioRecordActivity extends AppCompatActivity implements Probe.Data
     private Button uploadButton;
     private TextView dataCountView;
     private Handler handler;
+    private boolean isRecording;
+
     private ServiceConnection funfManagerConn = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -52,7 +59,6 @@ public class AudioRecordActivity extends AppCompatActivity implements Probe.Data
 
             mAudioFeatureProbe = gson.fromJson(new JsonObject(), AudioFeaturesProbe.class);
             pipeline = (BasicPipeline) funfManager.getRegisteredPipeline(PIPELINE_NAME);
-            mAudioFeatureProbe.registerPassiveListener(AudioRecordActivity.this);
 
             // This checkbox enables or disables the pipeline
             enabledCheckbox.setChecked(pipeline.isEnabled());
@@ -86,10 +92,10 @@ public class AudioRecordActivity extends AppCompatActivity implements Probe.Data
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_audio_record);
 
         // Used to make interface changes on main thread
-        handler = new Handler();
+        handler = new AudioHandler();
 
         // Displays the count of rows in the data
         dataCountView = (TextView) findViewById(R.id.dataCountText);
@@ -100,11 +106,12 @@ public class AudioRecordActivity extends AppCompatActivity implements Probe.Data
             @Override
             public void onClick(View v) {
                 if (pipeline.isEnabled()) {
-                    // Manually register the pipeline
-                    mAudioFeatureProbe.registerListener(pipeline);
-                    stopAudioFeatureProbeDelay();
 
-                    scanNowButton.setEnabled(false);
+                    if (isRecording) {
+                        stopRecord();
+                    } else {
+                        startRecord();
+                    }
 
                 } else {
                     Toast.makeText(getBaseContext(), "Pipeline is not enabled.", Toast.LENGTH_SHORT).show();
@@ -156,7 +163,34 @@ public class AudioRecordActivity extends AppCompatActivity implements Probe.Data
 
                 scanNowButton.setEnabled(true);
             }
-        }, 10 * 1000L);
+        }, RECORD_LONG);
+    }
+
+    private void startRecord() {
+        mAudioFeatureProbe.registerListener(pipeline);
+        mAudioFeatureProbe.registerPassiveListener(AudioRecordActivity.this);
+
+        scanNowButton.setText(R.string.stop);
+
+        isRecording = true;
+
+        sendArchiveMessage();
+    }
+
+    private void stopRecord() {
+        mAudioFeatureProbe.unregisterListener(pipeline);
+        mAudioFeatureProbe.unregisterPassiveListener(AudioRecordActivity.this);
+        mAudioFeatureProbe.stop();
+
+        scanNowButton.setText(R.string.record);
+
+        isRecording = false;
+    }
+
+    private void archive() {
+        if (pipeline.isEnabled()) {
+            pipeline.onRun(BasicPipeline.ACTION_ARCHIVE, null);
+        }
     }
 
     @Override
@@ -194,6 +228,10 @@ public class AudioRecordActivity extends AppCompatActivity implements Probe.Data
 
     }
 
+    public void upload() {
+        pipeline.onRun(BasicPipeline.ACTION_UPLOAD, null);
+    }
+
     public void upload(View v) {
         if (pipeline.isEnabled()) {
             pipeline.onRun(BasicPipeline.ACTION_UPLOAD, null);
@@ -209,6 +247,32 @@ public class AudioRecordActivity extends AppCompatActivity implements Probe.Data
             }, 1000L);
         } else {
             Toast.makeText(getBaseContext(), "Pipeline is not enabled.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void sendArchiveMessage() {
+        handler.sendEmptyMessageDelayed(MSG_ARCHIVE, 10 * 1000);
+    }
+
+    class AudioHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            switch(msg.what) {
+                case MSG_ARCHIVE:
+                    archive();
+
+                    handler.sendEmptyMessageDelayed(MSG_UPLOAD, 2 *1000);
+
+                    if (isRecording) {
+                        sendArchiveMessage();
+                    }
+                    break;
+                case MSG_UPLOAD:
+                    upload();
+                    break;
+                default:
+                    break;
+            }
         }
     }
 

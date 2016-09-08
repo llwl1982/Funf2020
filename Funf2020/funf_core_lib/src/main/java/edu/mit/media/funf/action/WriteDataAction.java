@@ -43,7 +43,15 @@ public class WriteDataAction extends Action implements DataListener {
         cv.put(NameValueDatabaseHelper.COLUMN_NAME, key);
         cv.put(NameValueDatabaseHelper.COLUMN_VALUE, value);
         cv.put(NameValueDatabaseHelper.COLUMN_TIMESTAMP, timestamp);
-        db.insertOrThrow(NameValueDatabaseHelper.DATA_TABLE.name, "", cv);
+
+        try {
+            db.insertOrThrow(NameValueDatabaseHelper.DATA_TABLE.name, "", cv);
+        } finally {
+            if (db != null && db.isOpen()) {
+                db.close();
+            }
+        }
+
     }
     
     @Override

@@ -10,4 +10,7 @@
 
          }
     </string>
+
+    <string name="record">Record now</string>
+    <string name="stop">Stop</string>
 </resources>
