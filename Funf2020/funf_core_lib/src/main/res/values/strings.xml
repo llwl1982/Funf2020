@@ -25,4 +25,5 @@
 <resources>
 
     <string name="lib_name">funf</string>
+	<string name="audio_capture">音频采集正在运行…</string>
 </resources>

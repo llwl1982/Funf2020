@@ -60,7 +60,7 @@ public class AudioFeaturesProbe extends Base implements ContinuousProbe, AudioFe
 	private static int RECORDER_SAMPLERATE = 8000;
 	
 	private static int FFT_SIZE = 8192;
-	private static int MFCCS_VALUE = 13;
+	private static int MFCCS_VALUE = 12;
 	private static int MEL_BANDS = 20;
 	private static double[] FREQ_BANDEDGES = {50,250,500,1000,2000};
 	
@@ -226,6 +226,7 @@ public class AudioFeaturesProbe extends Base implements ContinuousProbe, AudioFe
 	    		data.add(MFCCS, gson.toJsonTree(featureCepstrum));
 
 				data.add("data16bit", gson.toJsonTree(data16bit));
+			    Log.i("AudioFeaturesProbe", "mfccs-->" + Arrays.toString(featureCepstrum));
 
 	    		// Write out features
 	    		sendData(data);

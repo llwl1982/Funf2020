@@ -3,277 +3,220 @@ package com.asiainfo.funf2020;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+
 import android.os.Bundle;
+
 import android.os.Handler;
 import android.os.IBinder;
+
 import android.os.Message;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.util.TimeUtils;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.ai2020lab.aiutils.system.AppUtils;
+import com.ai2020lab.aiutils.thread.TaskSimpleRunnable;
+import com.ai2020lab.aiutils.thread.ThreadUtils;
 
-import edu.mit.media.funf.FunfManager;
-import edu.mit.media.funf.json.IJsonObject;
-import edu.mit.media.funf.pipeline.BasicPipeline;
-import edu.mit.media.funf.probe.Probe;
-import edu.mit.media.funf.probe.builtin.AudioFeaturesProbe;
-import edu.mit.media.funf.storage.NameValueDatabaseHelper;
-
-/**
- * Created by Rocky on 16/8/30.
- */
-public class AudioRecordActivity extends AppCompatActivity implements Probe.DataListener {
+import java.lang.ref.WeakReference;
+import java.util.concurrent.TimeUnit;
 
 
+public class AudioRecordActivity extends AppCompatActivity {
 
-    public static final String PIPELINE_NAME = "default";
-    public static final long RECORD_LONG = 10 * 1000L;
-    public static final int MSG_ARCHIVE = 1;
-    public static final int MSG_UPLOAD = 2;
+	private final static String TAG = AudioRecordActivity.class.getSimpleName();
 
-    private FunfManager funfManager;
-    private BasicPipeline pipeline;;
-    private AudioFeaturesProbe mAudioFeatureProbe;
-    private CheckBox enabledCheckbox;
-    private Button archiveButton, scanNowButton;
-    private Button uploadButton;
-    private TextView dataCountView;
-    private Handler handler;
-    private boolean isRecording;
+	public static final int MSG_RUNNING = 0x11111;
+	public static final int MSG_STOP = 0x22222;
 
-    private ServiceConnection funfManagerConn = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            funfManager = ((FunfManager.LocalBinder)service).getManager();
+	private Intent intent;
+	Button scanNowButton;
 
-            Gson gson = funfManager.getGson();
+	private AudioFeatureService mAudioFeatureService;
 
-            mAudioFeatureProbe = gson.fromJson(new JsonObject(), AudioFeaturesProbe.class);
-            pipeline = (BasicPipeline) funfManager.getRegisteredPipeline(PIPELINE_NAME);
+	CheckHandler mCheckHandler;
 
-            // This checkbox enables or disables the pipeline
-            enabledCheckbox.setChecked(pipeline.isEnabled());
-            enabledCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    if (funfManager != null) {
-                        if (isChecked) {
-                            funfManager.enablePipeline(PIPELINE_NAME);
-                            pipeline = (BasicPipeline) funfManager.getRegisteredPipeline(PIPELINE_NAME);
-                        } else {
-                            funfManager.disablePipeline(PIPELINE_NAME);
-                        }
-                    }
-                }
-            });
-
-            // Set UI ready to use, by enabling buttons
-            enabledCheckbox.setEnabled(true);
-            archiveButton.setEnabled(true);
-            scanNowButton.setEnabled(true);
-            uploadButton.setEnabled(true);
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            funfManager = null;
-        }
-    };
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_audio_record);
-
-        // Used to make interface changes on main thread
-        handler = new AudioHandler();
-
-        // Displays the count of rows in the data
-        dataCountView = (TextView) findViewById(R.id.dataCountText);
-
-        scanNowButton = (Button) findViewById(R.id.scanNowButton);
-        scanNowButton.setEnabled(false);
-        scanNowButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (pipeline.isEnabled()) {
-
-                    if (isRecording) {
-                        stopRecord();
-                    } else {
-                        startRecord();
-                    }
-
-                } else {
-                    Toast.makeText(getBaseContext(), "Pipeline is not enabled.", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+	private boolean isAtBack = false;
 
 
+	/**
+	 * 同AudioFeatureSerive需要将数据返回给Activity
+	 */
+	private ServiceConnection audioServiceConn = new ServiceConnection() {
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service) {
+			Log.i(TAG, "--Activity同AudioFeatureService建立连接");
+			mAudioFeatureService = ((AudioFeatureService.AudioFeatureBinder) service).getService();
+		}
 
-        enabledCheckbox = (CheckBox) findViewById(R.id.enabledCheckbox);
-        enabledCheckbox.setEnabled(false);
+		@Override
+		public void onServiceDisconnected(ComponentName name) {
+			Log.i(TAG, "--Activity同AudioFeatureService断开连接");
+		}
+	};
 
-        // Runs an archive if pipeline is enabled
-        archiveButton = (Button) findViewById(R.id.archiveButton);
-        archiveButton.setEnabled(false);
-        archiveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (pipeline.isEnabled()) {
-                    pipeline.onRun(BasicPipeline.ACTION_ARCHIVE, null);
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		Log.i("AudioRecordActivity", "--重新创建AudioRecordActivity");
+		setContentView(R.layout.activity_audio_record);
+		scanNowButton = (Button) findViewById(R.id.scanNowButton);
+		intent = new Intent(this, AudioFeatureService.class);
+		mCheckHandler = new CheckHandler(this);
 
-                    // Wait 1 second for archive to finish, then refresh the UI
-                    // (Note: this is kind of a hack since archiving is seamless and there are no messages when it occurs)
-                    handler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(getBaseContext(), "Archived!", Toast.LENGTH_SHORT).show();
-                            updateScanCount();
-                        }
-                    }, 1000L);
-                } else {
-                    Toast.makeText(getBaseContext(), "Pipeline is not enabled.", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+		scanNowButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if (AppUtils.isServiceRunning(AudioRecordActivity.this,
+						AudioFeatureService.class.getName())) {
+					stopRecord();
+				} else {
+					startRecord();
+				}
 
-        uploadButton = (Button) findViewById(R.id.uploadButton);
-        uploadButton.setEnabled(false);
+			}
+		});
+	}
 
-        // Bind to the service, to create the connection with FunfManager
-        bindService(new Intent(this, FunfManager.class), funfManagerConn, BIND_AUTO_CREATE);
-    }
+	/**
+	 * 界面上检查音频采集服务是否已经绑定，用于更新按钮状态
+	 */
+	private boolean checkAudioRecording() {
+		if (mAudioFeatureService != null && mAudioFeatureService.getStatus()) {
+			Log.i(TAG, "--音频采集服务绑定--");
+			return true;
+		} else {
+			Log.i(TAG, "--音频采集服务未绑定--");
+			return false;
+		}
+	}
 
-    private void stopAudioFeatureProbeDelay() {
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                mAudioFeatureProbe.stop();
+	@Override
+	protected void onStart() {
+		super.onStart();
+		scanNowButton.setVisibility(View.GONE);
+		isAtBack = false;
+		// 检测到service已经在运行则同Service建立连接
+		if (AppUtils.isServiceRunning(this, AudioFeatureService.class.getName())) {
+			Log.i(TAG, "--onStart 中绑定 AudioFeatureService");
+			bindService(intent, audioServiceConn, BIND_AUTO_CREATE);
+		}
+		// 用户进入界面开始监听服务状态
+		listenAudioRecording();
+	}
 
-                scanNowButton.setEnabled(true);
-            }
-        }, RECORD_LONG);
-    }
+	/**
+	 * 设置按钮文字
+	 */
+	private void setScanNowButton(boolean isRunning) {
+		String stop = getString(R.string.stop);
+		String record = getString(R.string.record);
+		if (isRunning && !scanNowButton.getText().toString().equals(stop)) {
+			Log.i(TAG, "--设置采集按钮为停止--");
+			scanNowButton.setText(stop);
+		} else if (!isRunning && !scanNowButton.getText().toString().equals(record)) {
+			Log.i(TAG, "--设置采集按钮为开始--");
+			scanNowButton.setText(getString(R.string.record));
+		}
+		scanNowButton.setVisibility(View.VISIBLE);
+	}
 
-    private void startRecord() {
-        mAudioFeatureProbe.registerListener(pipeline);
-        mAudioFeatureProbe.registerPassiveListener(AudioRecordActivity.this);
+	/**
+	 * 更新界面
+	 */
+	static class CheckHandler extends Handler {
 
-        scanNowButton.setText(R.string.stop);
+		private final WeakReference<AudioRecordActivity> mActivity;
 
-        isRecording = true;
+		public CheckHandler(AudioRecordActivity activity) {
+			mActivity = new WeakReference<>(activity);
+		}
 
-        sendArchiveMessage();
-    }
-
-    private void stopRecord() {
-        mAudioFeatureProbe.unregisterListener(pipeline);
-        mAudioFeatureProbe.unregisterPassiveListener(AudioRecordActivity.this);
-        mAudioFeatureProbe.stop();
-
-        scanNowButton.setText(R.string.record);
-
-        isRecording = false;
-    }
-
-    private void archive() {
-        if (pipeline.isEnabled()) {
-            pipeline.onRun(BasicPipeline.ACTION_ARCHIVE, null);
-        }
-    }
-
-    @Override
-    public void onDataCompleted(IJsonObject probeConfig, JsonElement checkpoint) {
-        updateScanCount();
-        // Re-register to keep listening after probe completes.
-        mAudioFeatureProbe.registerPassiveListener(this);
-        //      locationProbe.registerPassiveListener(this);
-    }
-
-    private static final String TOTAL_COUNT_SQL = "SELECT count(*) FROM " + NameValueDatabaseHelper.DATA_TABLE.name;
-
-    /**
-     * Queries the database of the pipeline to determine how many rows of data we have recorded so far.
-     */
-    private void updateScanCount() {
-        // Query the pipeline db for the count of rows in the data table
-        SQLiteDatabase db = pipeline.getDatabaseHelper().getReadableDatabase();
-        Cursor mcursor = db.rawQuery(TOTAL_COUNT_SQL, null);
-        mcursor.moveToFirst();
-        final int count = mcursor.getInt(0);
-        // Update interface on main thread
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                dataCountView.setText("Data Count: " + count);
-            }
-        });
-    }
+		@Override
+		public void handleMessage(Message msg) {
+			AudioRecordActivity activity = mActivity.get();
+			switch (msg.what) {
+				case MSG_RUNNING:
+					activity.setScanNowButton(true);
+					break;
+				case MSG_STOP:
+					activity.setScanNowButton(false);
+					break;
+			}
+		}
+	}
 
 
-    @Override
-    public void onDataReceived(IJsonObject probeConfig, IJsonObject data) {
-        // TODO Auto-generated method stub
+	/**
+	 * 每秒都对录音服务的状态进行监测,并更新界面
+	 */
+	private void listenAudioRecording() {
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				// 界面在前台时循环监听服务状态,并更新界面
+				while (!isAtBack) {
+					mCheckHandler.obtainMessage(checkAudioRecording() ? MSG_RUNNING :
+							MSG_STOP).sendToTarget();
+					try {
+						// 一秒钟更新一次界面
+						TimeUnit.SECONDS.sleep(1);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}).start();
 
-    }
+	}
 
-    public void upload() {
-        pipeline.onRun(BasicPipeline.ACTION_UPLOAD, null);
-    }
+	private void startRecord() {
+		startService(intent);
+		scanNowButton.setText(getString(R.string.stop));
+		bindService(intent, audioServiceConn, BIND_AUTO_CREATE);
+	}
 
-    public void upload(View v) {
-        if (pipeline.isEnabled()) {
-            pipeline.onRun(BasicPipeline.ACTION_UPLOAD, null);
+	private void stopRecord() {
+		// 因为是先调用的startService再调用的bindService启动的服务，
+		// 所以停止服务时，先调用unBindService再调用stopService
+		unBinAudioFeatureService();
+		stopService(intent);
+		scanNowButton.setText(getString(R.string.record));
+	}
 
-            // Wait 1 second for archive to finish, then refresh the UI
-            // (Note: this is kind of a hack since archiving is seamless and there are no messages when it occurs)
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(getBaseContext(), "Uploaded!", Toast.LENGTH_SHORT).show();
-                    updateScanCount();
-                }
-            }, 1000L);
-        } else {
-            Toast.makeText(getBaseContext(), "Pipeline is not enabled.", Toast.LENGTH_SHORT).show();
-        }
-    }
+	private void unBinAudioFeatureService() {
+		try {
+			unbindService(audioServiceConn);
+		} catch (Exception e) {
+			Log.e(TAG, "--解除绑定异常", e);
+		}
+		mAudioFeatureService = null;
+	}
 
-    private void sendArchiveMessage() {
-        handler.sendEmptyMessageDelayed(MSG_ARCHIVE, 10 * 1000);
-    }
+	@Override
+	protected void onStop() {
+		super.onStop();
+		scanNowButton.setVisibility(View.GONE);
+		isAtBack = true;
+		Log.i(TAG, "--AudioRecordActivity回到后台");
+		// 界面回到后台，如果服务还在则同服务解除绑定
+		if (checkAudioRecording()) {
+			Log.i(TAG, "--onStop 中解除同 AudioFeatureService  绑定");
+			unBinAudioFeatureService();
+		}
+	}
 
-    class AudioHandler extends Handler {
-        @Override
-        public void handleMessage(Message msg) {
-            switch(msg.what) {
-                case MSG_ARCHIVE:
-                    archive();
-
-                    handler.sendEmptyMessageDelayed(MSG_UPLOAD, 2 *1000);
-
-                    if (isRecording) {
-                        sendArchiveMessage();
-                    }
-                    break;
-                case MSG_UPLOAD:
-                    upload();
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		Log.i(TAG, "--AudioRecordActivity挂了");
+		// 解除与Service的绑定
+		if (checkAudioRecording()) {
+			Log.i(TAG, "--onDestroy 中解除同 AudioFeatureService  绑定");
+			unBinAudioFeatureService();
+		}
+	}
 }
