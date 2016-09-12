@@ -160,6 +160,7 @@ public class AudioFeatureService extends Service implements Probe.DataListener {
 	public void onCreate() {
 		super.onCreate();
 		mAudioHandler = new AudioHandler(this);
+
 		// 启动成为前台服务
 		startForegroundCompat();
 		// Bind to the service, to create the connection with FunfManager

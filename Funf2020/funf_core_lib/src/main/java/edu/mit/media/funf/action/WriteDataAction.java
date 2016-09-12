@@ -14,6 +14,8 @@ import edu.mit.media.funf.json.IJsonObject;
 import edu.mit.media.funf.probe.Probe.DataListener;
 import edu.mit.media.funf.probe.builtin.ProbeKeys;
 import edu.mit.media.funf.storage.NameValueDatabaseHelper;
+import edu.mit.media.funf.util.DBUtils;
+import edu.mit.media.funf.util.DatabaseManager;
 import edu.mit.media.funf.util.LogUtil;
 
 public class WriteDataAction extends Action implements DataListener {
@@ -32,7 +34,7 @@ public class WriteDataAction extends Action implements DataListener {
         if (key == null || data == null)
             return;
         
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
         final double timestamp = data.get(ProbeKeys.BaseProbeKeys.TIMESTAMP).getAsDouble();
         final String value = data.toString();
         if (timestamp == 0L || key == null || value == null) {
@@ -45,11 +47,11 @@ public class WriteDataAction extends Action implements DataListener {
         cv.put(NameValueDatabaseHelper.COLUMN_TIMESTAMP, timestamp);
 
         try {
-            db.insertOrThrow(NameValueDatabaseHelper.DATA_TABLE.name, "", cv);
-        } finally {
-            if (db != null && db.isOpen()) {
-                db.close();
-            }
+            DBUtils.insertOrThrow(NameValueDatabaseHelper.DATA_TABLE.name, "", cv);
+        } catch (Exception e) {
+
+        }  finally {
+            DatabaseManager.getInstance().closeDatabase();
         }
 
     }

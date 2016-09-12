@@ -4,6 +4,8 @@ import java.io.File;
 
 import edu.mit.media.funf.config.Configurable;
 import edu.mit.media.funf.storage.FileArchive;
+import edu.mit.media.funf.util.DBUtils;
+import edu.mit.media.funf.util.DatabaseManager;
 import edu.mit.media.funf.util.LogUtil;
 
 import android.database.sqlite.SQLiteDatabase;
@@ -28,14 +30,8 @@ public class RunArchiveAction extends Action {
     
     protected void execute() {
         Log.d(LogUtil.TAG, "running archive");
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        // TODO: add check to make sure this is not empty
-        File dbFile = new File(db.getPath());
-        db.close();
-        if (archive.add(dbFile)) {
-          dbFile.delete();
-        }
-        dbHelper.getWritableDatabase(); // Build new database
+        DBUtils.deleteDBFile(archive);
+     //   dbHelper.getWritableDatabase(); // Build new database
         Log.d(LogUtil.TAG, "archived!");
         setHandler(null); // free system resources
     }

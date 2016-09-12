@@ -55,6 +55,7 @@ import edu.mit.media.funf.storage.FileArchive;
 import edu.mit.media.funf.storage.NameValueDatabaseHelper;
 import edu.mit.media.funf.storage.RemoteFileArchive;
 import edu.mit.media.funf.storage.UploadService;
+import edu.mit.media.funf.util.DatabaseManager;
 import edu.mit.media.funf.util.StringUtil;
 
 public class BasicPipeline implements Pipeline, DataListener {
@@ -183,6 +184,8 @@ public class BasicPipeline implements Pipeline, DataListener {
 		thread.start();
 		this.looper = thread.getLooper();
 		this.handler = new Handler(looper);
+
+		DatabaseManager.initializeInstance(databaseHelper);
 
 		writeAction = new WriteDataAction(databaseHelper);
 		writeAction.setHandler(handler);
