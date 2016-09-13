@@ -225,7 +225,7 @@ public class AudioFeaturesProbe extends Base implements ContinuousProbe, AudioFe
 	    		featureCepstrum = featureMFCC.cepstrum(fftBufferR, fftBufferI);
 	    		data.add(MFCCS, gson.toJsonTree(featureCepstrum));
 
-				data.add("data16bit", gson.toJsonTree(data16bit));
+//				data.add("data16bit", gson.toJsonTree(data16bit));
 			    Log.i("AudioFeaturesProbe", "mfccs-->" + Arrays.toString(featureCepstrum));
 
 	    		// Write out features
