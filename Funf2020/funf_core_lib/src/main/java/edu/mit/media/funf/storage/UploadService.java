@@ -99,6 +99,10 @@ public class UploadService {
       if (lock == null) {
         lock = LockUtil.getWakeLock(context);
       }
+
+      // reset Failures number
+      remoteArchiveFailures.put(remoteArchive.getId(), new Integer(0));
+
       for (final File file : archive.getAll()) {
         archive(archive, remoteArchive, file);
       }
