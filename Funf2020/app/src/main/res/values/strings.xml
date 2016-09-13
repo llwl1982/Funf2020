@@ -12,8 +12,8 @@
     </string>
 
 	<string name="audio_capture_mfcc">点击按钮开始</string>
-    <string name="record">开始录音</string>
-    <string name="stop">停止录音</string>
+    <string name="record">开始</string>
+    <string name="stop">停止</string>
 	<string name="read">点击按钮开始录音</string>
 	<string name="audio_capture">音频采集正在运行…</string>
 	<string name="content">试着大声说话,试着大声说话,试着大声说话,试着大声说话,试着大声说话</string>
