@@ -110,7 +110,7 @@ public interface DirectoryCleaner {
 				long bytesToDelete = size(directory) - maxBytesToKeep;
 				if (bytesToDelete > 0) {
 					Arrays.sort(files, new DescendingByLastModifiedComaparator());
-					for (int i=files.length; i>=0; i--) {
+					for (int i=files.length - 1; i>=0; i--) {
 						if (bytesToDelete > 0) {
 							bytesToDelete -= size(files[i]);
 							files[i].delete();

@@ -112,19 +112,21 @@ public class AudioFeatureService extends Service implements Probe.DataListener {
 		@Override
 		public void handleMessage(Message msg) {
 			AudioFeatureService service = mService.get();
-			switch (msg.what) {
-				case MSG_ARCHIVE:
-					service.archive();
-					// 发送上传数据消息
-					service.sendUploadMessage();
-					// 发送归档消息
-					service.sendArchiveMessage();
-					break;
-				case MSG_UPLOAD:
-					service.upload();
-					break;
-				default:
-					break;
+			if (service != null) {
+				switch (msg.what) {
+					case MSG_ARCHIVE:
+						service.archive();
+						// 发送上传数据消息
+						service.sendUploadMessage();
+						// 发送归档消息
+						service.sendArchiveMessage();
+						break;
+					case MSG_UPLOAD:
+						service.upload();
+						break;
+					default:
+						break;
+				}
 			}
 		}
 	}

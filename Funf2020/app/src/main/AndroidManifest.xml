@@ -48,6 +48,7 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
+        android:name=".app.AIApplication"
         tools:replace="android:label">
         <activity android:name=".AudioRecordActivity">
             <intent-filter>

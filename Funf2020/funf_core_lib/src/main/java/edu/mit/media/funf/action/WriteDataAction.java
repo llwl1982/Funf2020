@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.ai2020lab.aiutils.system.DeviceUtils;
 import com.google.gson.JsonElement;
 
 import edu.mit.media.funf.config.Configurable;
@@ -17,6 +18,7 @@ import edu.mit.media.funf.storage.NameValueDatabaseHelper;
 import edu.mit.media.funf.util.DBUtils;
 import edu.mit.media.funf.util.DatabaseManager;
 import edu.mit.media.funf.util.LogUtil;
+import edu.mit.media.funf.util.ShareUtils;
 
 public class WriteDataAction extends Action implements DataListener {
 
@@ -42,6 +44,7 @@ public class WriteDataAction extends Action implements DataListener {
             throw new SQLException("Not all required fields specified.");
         }
         ContentValues cv = new ContentValues();
+        cv.put(NameValueDatabaseHelper.COLUMN_IMEI, ShareUtils.getImei());
         cv.put(NameValueDatabaseHelper.COLUMN_NAME, key);
         cv.put(NameValueDatabaseHelper.COLUMN_VALUE, value);
         cv.put(NameValueDatabaseHelper.COLUMN_TIMESTAMP, timestamp);

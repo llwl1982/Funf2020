@@ -29,9 +29,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
+import android.bluetooth.BluetoothClass;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import com.ai2020lab.aiutils.system.DeviceUtils;
+
 import edu.mit.media.funf.time.TimeUtil;
 import edu.mit.media.funf.util.StringUtil;
 import edu.mit.media.funf.util.UuidUtil;
@@ -39,12 +43,14 @@ import edu.mit.media.funf.util.UuidUtil;
 public class NameValueDatabaseHelper extends SQLiteOpenHelper {
 
 	public static final int CURRENT_VERSION = 1;
-	
+
+	public static final String COLUMN_IMEI = "imei";
 	public static final String COLUMN_NAME = "name";
 	public static final String COLUMN_TIMESTAMP = "timestamp";
 	public static final String COLUMN_VALUE = "value";
 	public static final Table DATA_TABLE = new Table("data", 
-			Arrays.asList(new Column(COLUMN_NAME, "TEXT"), // ACTION from data broadcast
+			Arrays.asList(new Column(COLUMN_IMEI, "TEXT"),
+						  new Column(COLUMN_NAME, "TEXT"), // ACTION from data broadcast
 					      new Column(COLUMN_TIMESTAMP, "FLOAT"), // TIMESTAMP in data broadcast
 					      new Column(COLUMN_VALUE, "TEXT"))); // JSON representing 
 	public static final String COLUMN_DATABASE_NAME= "dbname";
@@ -54,7 +60,8 @@ public class NameValueDatabaseHelper extends SQLiteOpenHelper {
 	public static final Table FILE_INFO_TABLE = new Table("file_info", 
 			Arrays.asList(new Column(COLUMN_DATABASE_NAME, "TEXT"), // Name of this database
 						  new Column(COLUMN_INSTALLATION, "TEXT"), // Universally Unique Id for device installation 
-				      	  new Column(COLUMN_UUID, "TEXT"), // Universally Unique Id for file 
+				      	  new Column(COLUMN_UUID, "TEXT"), // Universally Unique Id for file
+						  new Column(COLUMN_IMEI, "TEXT"),
 					      new Column(COLUMN_CREATED, "FLOAT"))); // TIMESTAMP in data broadcast
 	
 	
@@ -74,11 +81,12 @@ public class NameValueDatabaseHelper extends SQLiteOpenHelper {
 		// Insert file identifier information
 		String installationUuid = UuidUtil.getInstallationId(context);
 		String fileUuid = UUID.randomUUID().toString();
+		String imei = DeviceUtils.getIMEI(context);
 		double createdTime = TimeUtil.getTimestamp().doubleValue();
-		db.execSQL(String.format(Locale.US, "insert into %s (%s, %s, %s, %s) values ('%s', '%s', '%s', %f)", 
+		db.execSQL(String.format(Locale.US, "insert into %s (%s, %s, %s, %s, %s) values ('%s', '%s', '%s','%s', %f)",
 				FILE_INFO_TABLE.name, 
-				COLUMN_DATABASE_NAME, COLUMN_INSTALLATION, COLUMN_UUID, COLUMN_CREATED,
-				databaseName, installationUuid, fileUuid, createdTime));
+				COLUMN_DATABASE_NAME, COLUMN_INSTALLATION, COLUMN_UUID, COLUMN_IMEI, COLUMN_CREATED,
+				databaseName, installationUuid, fileUuid, imei, createdTime));
 	}
 
 	@Override
