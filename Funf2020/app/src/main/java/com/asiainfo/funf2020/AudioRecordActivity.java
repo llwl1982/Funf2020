@@ -1,117 +1,84 @@
 package com.asiainfo.funf2020;
 
-import android.content.ComponentName;
-import android.content.Intent;
-import android.content.ServiceConnection;
-
 import android.os.Bundle;
 
-import android.os.Handler;
-import android.os.IBinder;
-
-import android.os.Message;
-import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.util.TimeUtils;
 import android.view.View;
 import android.widget.Button;
 
-import com.ai2020lab.aiutils.system.AppUtils;
-import com.ai2020lab.aiutils.thread.TaskSimpleRunnable;
-import com.ai2020lab.aiutils.thread.ThreadUtils;
-
-import java.lang.ref.WeakReference;
-import java.util.concurrent.TimeUnit;
+import com.asiainfo.funf2020.presenter.AudioRecordPresenter;
+import com.asiainfo.funf2020.presenter.AudioRecordPresenterCompl;
+import com.asiainfo.funf2020.view.AudioRecordView;
 
 
-public class AudioRecordActivity extends AppCompatActivity {
+public class AudioRecordActivity extends AppCompatActivity implements AudioRecordView {
 
 	private final static String TAG = AudioRecordActivity.class.getSimpleName();
 
-	public static final int MSG_RUNNING = 0x11111;
-	public static final int MSG_STOP = 0x22222;
+	private Button scanNowButton;
 
-	private Intent intent;
-	Button scanNowButton;
-
-	private AudioFeatureService mAudioFeatureService;
-
-	CheckHandler mCheckHandler;
+	private Button clearCacheButton;
 
 	private boolean isAtBack = false;
 
+	/**
+	 * Presenter
+	 */
+	private AudioRecordPresenter mAudioRecordPresenter;
 
 	/**
-	 * 同AudioFeatureSerive需要将数据返回给Activity
+	 * 初始化界面
 	 */
-	private ServiceConnection audioServiceConn = new ServiceConnection() {
-		@Override
-		public void onServiceConnected(ComponentName name, IBinder service) {
-			Log.i(TAG, "--Activity同AudioFeatureService建立连接");
-			mAudioFeatureService = ((AudioFeatureService.AudioFeatureBinder) service).getService();
-		}
-
-		@Override
-		public void onServiceDisconnected(ComponentName name) {
-			Log.i(TAG, "--Activity同AudioFeatureService断开连接");
-		}
-	};
+	private void initViews() {
+		scanNowButton = (Button) findViewById(R.id.record_audio);
+		clearCacheButton = (Button) findViewById(R.id.clear_cache);
+		scanNowButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				mAudioRecordPresenter.doRecording(AudioRecordActivity.this);
+			}
+		});
+		clearCacheButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				mAudioRecordPresenter.delCache(AudioRecordActivity.this);
+			}
+		});
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Log.i("AudioRecordActivity", "--重新创建AudioRecordActivity");
 		setContentView(R.layout.activity_audio_record);
-		scanNowButton = (Button) findViewById(R.id.scanNowButton);
-		intent = new Intent(this, AudioFeatureService.class);
-		mCheckHandler = new CheckHandler(this);
+		initViews();
 
-		scanNowButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				if (AppUtils.isServiceRunning(AudioRecordActivity.this,
-						AudioFeatureService.class.getName())) {
-					stopRecord();
-				} else {
-					startRecord();
-				}
+		// 初始化Presenter
+		mAudioRecordPresenter = new AudioRecordPresenterCompl(this, this);
 
-			}
-		});
 	}
 
-	/**
-	 * 界面上检查音频采集服务是否已经绑定，用于更新按钮状态
-	 */
-	private boolean checkAudioRecording() {
-		if (mAudioFeatureService != null && mAudioFeatureService.getStatus()) {
-			Log.i(TAG, "--音频采集服务绑定--");
-			return true;
-		} else {
-			Log.i(TAG, "--音频采集服务未绑定--");
-			return false;
-		}
-	}
 
 	@Override
 	protected void onStart() {
 		super.onStart();
-		scanNowButton.setVisibility(View.GONE);
+		setScanNowButtonVisibility(View.GONE);
 		isAtBack = false;
 		// 检测到service已经在运行则同Service建立连接
-		if (AppUtils.isServiceRunning(this, AudioFeatureService.class.getName())) {
-			Log.i(TAG, "--onStart 中绑定 AudioFeatureService");
-			bindService(intent, audioServiceConn, BIND_AUTO_CREATE);
-		}
+		mAudioRecordPresenter.bindRecordingService(this);
 		// 用户进入界面开始监听服务状态
-		listenAudioRecording();
+		mAudioRecordPresenter.listenAudioRecording();
+		// 监听缓存容量
+		mAudioRecordPresenter.listenSDCard(this);
 	}
 
+
 	/**
-	 * 设置按钮文字
+	 * 检查状态后更新录制按钮文字
 	 */
-	private void setScanNowButton(boolean isRunning) {
+	@Override
+	public void onListenRecording(boolean isRunning){
 		String stop = getString(R.string.stop);
 		String record = getString(R.string.record);
 		if (isRunning && !scanNowButton.getText().toString().equals(stop)) {
@@ -125,88 +92,47 @@ public class AudioRecordActivity extends AppCompatActivity {
 	}
 
 	/**
-	 * 更新界面
+	 * 用于设置扫描按钮的文字
+	 *
+	 * @param text 扫描按钮的文字
 	 */
-	static class CheckHandler extends Handler {
-
-		private final WeakReference<AudioRecordActivity> mActivity;
-
-		public CheckHandler(AudioRecordActivity activity) {
-			mActivity = new WeakReference<>(activity);
-		}
-
-		@Override
-		public void handleMessage(Message msg) {
-			AudioRecordActivity activity = mActivity.get();
-			switch (msg.what) {
-				case MSG_RUNNING:
-					activity.setScanNowButton(true);
-					break;
-				case MSG_STOP:
-					activity.setScanNowButton(false);
-					break;
-			}
-		}
+	@Override
+	public void setScanNowButtonText(String text) {
+		scanNowButton.setText(text);
 	}
-
 
 	/**
-	 * 每秒都对录音服务的状态进行监测,并更新界面
+	 * 用于设置清除缓存按钮的文字
+	 *
+	 * @param text 清除缓存按钮的文字
 	 */
-	private void listenAudioRecording() {
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				// 界面在前台时循环监听服务状态,并更新界面
-				while (!isAtBack) {
-					mCheckHandler.obtainMessage(checkAudioRecording() ? MSG_RUNNING :
-							MSG_STOP).sendToTarget();
-					try {
-						// 一秒钟更新一次界面
-						TimeUnit.SECONDS.sleep(1);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		}).start();
-
+	@Override
+	public void setSDCardButtonText(String text){
+		clearCacheButton.setText(text);
 	}
 
-	private void startRecord() {
-		startService(intent);
-		scanNowButton.setText(getString(R.string.stop));
-		bindService(intent, audioServiceConn, BIND_AUTO_CREATE);
+	/**
+	 * 设置扫描按钮显示或隐藏
+	 */
+	@Override
+	public void setScanNowButtonVisibility(int visibility) {
+		scanNowButton.setVisibility(visibility);
 	}
 
-	private void stopRecord() {
-		// 因为是先调用的startService再调用的bindService启动的服务，
-		// 所以停止服务时，先调用unBindService再调用stopService
-		unBinAudioFeatureService();
-		stopService(intent);
-		scanNowButton.setText(getString(R.string.record));
+	@Override
+	public boolean isAtBack(){
+		return isAtBack;
 	}
 
-	private void unBinAudioFeatureService() {
-		try {
-			unbindService(audioServiceConn);
-		} catch (Exception e) {
-			Log.e(TAG, "--解除绑定异常", e);
-		}
-		mAudioFeatureService = null;
-	}
 
 	@Override
 	protected void onStop() {
 		super.onStop();
-		scanNowButton.setVisibility(View.GONE);
+		setScanNowButtonVisibility(View.GONE);
 		isAtBack = true;
 		Log.i(TAG, "--AudioRecordActivity回到后台");
 		// 界面回到后台，如果服务还在则同服务解除绑定
-		if (checkAudioRecording()) {
-			Log.i(TAG, "--onStop 中解除同 AudioFeatureService  绑定");
-			unBinAudioFeatureService();
-		}
+		mAudioRecordPresenter.unBindRecordingService(this);
 	}
 
 	@Override
@@ -214,9 +140,6 @@ public class AudioRecordActivity extends AppCompatActivity {
 		super.onDestroy();
 		Log.i(TAG, "--AudioRecordActivity挂了");
 		// 解除与Service的绑定
-		if (checkAudioRecording()) {
-			Log.i(TAG, "--onDestroy 中解除同 AudioFeatureService  绑定");
-			unBinAudioFeatureService();
-		}
+		mAudioRecordPresenter.unBindRecordingService(this);
 	}
 }
