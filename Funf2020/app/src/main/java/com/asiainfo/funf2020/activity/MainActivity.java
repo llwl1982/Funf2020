@@ -1,4 +1,4 @@
-package com.asiainfo.funf2020;
+package com.asiainfo.funf2020.activity;
 
 import android.content.ComponentName;
 import android.content.Intent;
@@ -18,6 +18,7 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.asiainfo.funf2020.R;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

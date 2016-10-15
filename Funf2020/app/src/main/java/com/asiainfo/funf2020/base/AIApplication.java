@@ -1,4 +1,4 @@
-package com.asiainfo.funf2020.app;
+package com.asiainfo.funf2020.base;
 
 import android.app.Application;
 

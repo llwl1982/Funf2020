@@ -1,7 +1,5 @@
 package com.asiainfo.funf2020.contract;
 
-import android.content.Context;
-
 import com.asiainfo.funf2020.mvp.base.BasePresenter;
 import com.asiainfo.funf2020.mvp.base.BaseView;
 

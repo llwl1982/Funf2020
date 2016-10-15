@@ -1,7 +1,5 @@
 package com.asiainfo.funf2020.mvp;
 
-import android.content.Context;
-
 import com.asiainfo.funf2020.mvp.base.BaseView;
 
 import java.lang.ref.Reference;
