@@ -1,10 +1,12 @@
 package com.asiainfo.funf2020.view;
 
+import com.asiainfo.funf2020.mvp.base.BaseView;
+
 /**
  * Created by Justin Z on 2016/10/11.
  * 502953057@qq.com
  */
-public interface AudioRecordView {
+public interface AudioRecordView extends BaseView {
 
 
 	/**
