@@ -48,9 +48,9 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        android:name=".app.AIApplication"
+        android:name=".base.AIApplication"
         tools:replace="android:label">
-        <activity android:name=".AudioRecordActivity">
+        <activity android:name=".activity.AudioRecordActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -72,7 +72,7 @@
             <meta-data android:name="default" android:value="@string/default_pipeline"/>
         </service>
 
-	    <service android:name=".AudioFeatureService">
+	    <service android:name=".service.AudioFeatureService">
 	    </service>
 
     </application>
