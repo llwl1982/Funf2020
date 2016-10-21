@@ -3,6 +3,6 @@
     "version":1,
 
     "upload": {
-                "url": "http://10.5.1.246:8000/data"
+                "url": "http://10.5.1.249:2001/data"
                 }
 }

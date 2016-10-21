@@ -50,13 +50,14 @@
         android:theme="@style/AppTheme"
         android:name=".app.AIApplication"
         tools:replace="android:label">
-        <activity android:name=".AudioRecordActivity">
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".AudioRecordActivity"/>
 
         <receiver android:name="edu.mit.media.funf.Launcher" android:enabled="true">
             <intent-filter>

@@ -102,13 +102,15 @@ public class MainActivity extends AppCompatActivity implements DataListener {
         scanNowButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (pipeline.isEnabled()) {
-                    // Manually register the pipeline
-                    mTestProbe.registerListener(pipeline);
-  //                  locationProbe.registerListener(pipeline);
-                } else {
-                    Toast.makeText(getBaseContext(), "Pipeline is not enabled.", Toast.LENGTH_SHORT).show();
-                }
+                Intent intent = new Intent(MainActivity.this, AudioRecordActivity.class);
+                startActivity(intent);
+//                if (pipeline.isEnabled()) {
+//                    // Manually register the pipeline
+//                    mTestProbe.registerListener(pipeline);
+//  //                  locationProbe.registerListener(pipeline);
+//                } else {
+//                    Toast.makeText(getBaseContext(), "Pipeline is not enabled.", Toast.LENGTH_SHORT).show();
+//                }
             }
         });
 

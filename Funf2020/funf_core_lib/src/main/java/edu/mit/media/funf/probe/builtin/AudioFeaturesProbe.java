@@ -50,11 +50,13 @@ import edu.mit.media.funf.probe.builtin.ProbeKeys.AudioFeaturesKeys;
 @RequiredPermissions(android.Manifest.permission.RECORD_AUDIO)
 public class AudioFeaturesProbe extends Base implements ContinuousProbe, AudioFeaturesKeys {
 
+	public final static String TAG = "AudioFeaturesProbe";
+
 	// TODO: may need to change this to 44100 sampling to make it more compatible across devices
 	// Alternatively, we could dynamically discover it 
 	// http://stackoverflow.com/questions/6745344/record-audio-using-audiorecord-in-android
 	
-	private static int RECORDER_SOURCE = MediaRecorder.AudioSource.VOICE_RECOGNITION;
+	private static int RECORDER_SOURCE = MediaRecorder.AudioSource.MIC;
 	private static int RECORDER_CHANNELS = AudioFormat.CHANNEL_IN_MONO;
 	private static int RECORDER_AUDIO_ENCODING = AudioFormat.ENCODING_PCM_16BIT;
 	private static int RECORDER_SAMPLERATE = 8000;
@@ -111,24 +113,34 @@ public class AudioFeaturesProbe extends Base implements ContinuousProbe, AudioFe
 				RECORDER_CHANNELS,
 				RECORDER_AUDIO_ENCODING,
 				bufferSize);
+
 	    prevSecs = (double)System.currentTimeMillis()/1000.0d;
-	    audioRecorder.startRecording();
-	    recordingThread = new Thread(new Runnable()
-	    {
-	        @Override
-	        public void run()
-	        {
-	            handleAudioStream();
-	        }
-	    }, "AudioRecorder Thread");
-	    recordingThread.start();
+
+		int state = audioRecorder.getState();
+
+		if (state == AudioRecord.STATE_INITIALIZED) {
+			audioRecorder.startRecording();
+			recordingThread = new Thread(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					handleAudioStream();
+				}
+			}, "AudioRecorder Thread");
+			recordingThread.start();
+		}
+
 	}
 
 	@Override
 	protected void onStop() {
 		super.onStop();
-		audioRecorder.stop();
-        audioRecorder.release();
+		if (audioRecorder.getState() == AudioRecord.STATE_INITIALIZED) {
+			audioRecorder.stop();
+			audioRecorder.release();
+		}
+
         audioRecorder = null;
         recordingThread = null;
 	}
@@ -218,15 +230,21 @@ public class AudioFeaturesProbe extends Base implements ContinuousProbe, AudioFe
 	    			}
 	    			psdAcrossFrequencyBands[b] = accum/((double)(k - j));
 	    		}
+
+				double db = caculDB(data16bit, readAudioSamples);
+				Log.i(TAG, "dB-->" + db);
+
 	    		Gson gson = getGson();
 	    		data.add(PSD_ACROSS_FREQUENCY_BANDS, gson.toJsonTree(psdAcrossFrequencyBands));
 
 	    		// Get MFCCs
 	    		featureCepstrum = featureMFCC.cepstrum(fftBufferR, fftBufferI);
 	    		data.add(MFCCS, gson.toJsonTree(featureCepstrum));
+				data.add(DB, gson.toJsonTree(db));
 
 //				data.add("data16bit", gson.toJsonTree(data16bit));
-			    Log.i("AudioFeaturesProbe", "mfccs-->" + Arrays.toString(featureCepstrum));
+//				Log.i(TAG, "raw audio data-->" + Arrays.toString(data16bit));
+//			    Log.i(TAG, "mfccs-->" + Arrays.toString(featureCepstrum));
 
 	    		// Write out features
 	    		sendData(data);
@@ -234,6 +252,19 @@ public class AudioFeaturesProbe extends Base implements ContinuousProbe, AudioFe
 	    	}
 	    }
 
+	}
+
+	private double caculDB(short data16bit[], int sampleBytes) {
+		long v = 0;
+
+		for (int i = 0; i < data16bit.length; i++) {
+			v += data16bit[i] * data16bit[i];
+		}
+		// 平方和除以数据总长度，得到音量大小。
+		double mean = v / (double) sampleBytes;
+		double db = 10 * Math.log10(mean);
+
+		return db;
 	}
 	
 }

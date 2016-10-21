@@ -112,6 +112,7 @@ public class ProbeKeys {
 		L2_NORM = "l2Norm",
 		LINF_NORM = "linfNorm",
 		PSD_ACROSS_FREQUENCY_BANDS = "psdAcrossFrequencyBands",
+		DB = "db",
 		MFCCS = "mfccs";
 	}
 	
