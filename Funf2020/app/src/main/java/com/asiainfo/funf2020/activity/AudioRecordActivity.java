@@ -5,10 +5,13 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
+import com.ai2020lab.aiutils.common.LogUtils;
 import com.asiainfo.funf2020.R;
 import com.asiainfo.funf2020.contract.AudioRecordContract;
 import com.asiainfo.funf2020.presenter.AudioRecordPresenter;
 import com.asiainfo.funf2020.mvp.MVPActivity;
+
+import edu.mit.media.funf.util.LogUtil;
 
 /**
  * 录音界面
@@ -22,6 +25,8 @@ public class AudioRecordActivity extends MVPActivity<AudioRecordContract.View,
 
 	private Button clearCacheButton;
 
+	private Button meetingModeButton;
+
 	private boolean isAtBack = false;
 
 	/**
@@ -30,6 +35,7 @@ public class AudioRecordActivity extends MVPActivity<AudioRecordContract.View,
 	private void initViews() {
 		scanNowButton = (Button) findViewById(R.id.record_audio);
 		clearCacheButton = (Button) findViewById(R.id.clear_cache);
+		meetingModeButton = (Button) findViewById(R.id.meeting_mode);
 		scanNowButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -40,6 +46,12 @@ public class AudioRecordActivity extends MVPActivity<AudioRecordContract.View,
 			@Override
 			public void onClick(View v) {
 				getPresenter().delCache();
+			}
+		});
+		meetingModeButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				getPresenter().toMeetingModeActivity();
 			}
 		});
 	}
@@ -91,6 +103,7 @@ public class AudioRecordActivity extends MVPActivity<AudioRecordContract.View,
 
 	@Override
 	public boolean isAtBack() {
+		LogUtils.i(TAG, "--判断 AudioRecordActivity 是否在后台--");
 		return isAtBack;
 	}
 

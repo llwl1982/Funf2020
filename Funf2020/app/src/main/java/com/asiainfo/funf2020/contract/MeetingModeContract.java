@@ -1,37 +1,33 @@
 package com.asiainfo.funf2020.contract;
 
+import android.content.Context;
+
 import com.asiainfo.funf2020.mvp.base.BasePresenter;
 import com.asiainfo.funf2020.mvp.base.BaseView;
 
 /**
- * 接口协议类
+ * 会议模式接口协议类
  * Created by Justin Z on 2016/10/15.
  * 502953057@qq.com
  */
-public interface AudioRecordContract {
+public interface MeetingModeContract {
 
 	interface View extends BaseView {
-
 		/**
-		 * 检查录音状态后更新界面
+		 * 检查录音状态后控制屏幕闪烁
 		 */
 		void onListenRecording(boolean isRunning);
 
-
 		/**
-		 * 设置录音按钮的文字显示
+		 * 控制屏幕闪烁
 		 */
-		void setScanNowButtonText(String text);
+		void setSplashOn();
 
-		/**
-		 * 设置清除缓存按钮文字显示
-		 */
-		void setSDCardButtonText(String text);
+		void setSplashOff();
 
-		/**
-		 * 设置录音按钮隐藏或显示
-		 */
-		void setScanNowButtonVisibility(int visibility);
+		void setDoubleTapText(String text);
+
+		void setDoubleTapTextColor(int color);
 
 		/**
 		 * 判断界面是否在后台
@@ -41,18 +37,21 @@ public interface AudioRecordContract {
 	}
 
 	interface Presenter extends BasePresenter {
-		void listenAudioRecording();
 
-		void listenSDCard();
-
+		/**
+		 * 开始录制或结束录制
+		 */
 		void doRecording();
+
+		/**
+		 * 监听录制状态
+		 */
+		void listenAudioRecording();
 
 		void bindRecordingService();
 
 		void unBindRecordingService();
 
-		void delCache();
 
-		void toMeetingModeActivity();
 	}
 }

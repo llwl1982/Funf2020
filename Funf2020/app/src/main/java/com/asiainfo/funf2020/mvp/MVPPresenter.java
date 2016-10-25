@@ -32,6 +32,7 @@ public abstract class MVPPresenter<V extends BaseView> {
 	}
 
 	public V getView() {
+		if (mViewRef == null) return null;
 		return mViewRef.get();
 	}
 

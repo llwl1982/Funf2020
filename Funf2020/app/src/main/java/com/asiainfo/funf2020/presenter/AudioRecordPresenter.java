@@ -15,12 +15,14 @@ import com.ai2020lab.aiutils.common.StringUtils;
 import com.ai2020lab.aiutils.storage.FileUtils;
 import com.ai2020lab.aiutils.storage.StorageUtils;
 import com.ai2020lab.aiutils.system.AppUtils;
-import com.asiainfo.funf2020.AudioFeatureService;
+import com.asiainfo.funf2020.activity.MeetingModeActivity;
+import com.asiainfo.funf2020.contract.MeetingModeContract;
+import com.asiainfo.funf2020.service.AudioFeatureService;
 import com.asiainfo.funf2020.R;
 import com.asiainfo.funf2020.contract.AudioRecordContract;
-import com.asiainfo.funf2020.mvp.MVPModel;
+
 import com.asiainfo.funf2020.mvp.MVPPresenter;
-import com.asiainfo.funf2020.view.AudioRecordView;
+
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;
@@ -93,12 +95,15 @@ public class AudioRecordPresenter extends MVPPresenter<AudioRecordContract.View>
 		final Handler checkHandler = new Handler() {
 			@Override
 			public void handleMessage(Message msg) {
+				AudioRecordContract.View view = getView();
 				switch (msg.what) {
 					case MSG_RUNNING:
-						getView().onListenRecording(true);
+						if (view != null)
+							view.onListenRecording(true);
 						break;
 					case MSG_STOP:
-						getView().onListenRecording(false);
+						if (view != null)
+							view.onListenRecording(false);
 						break;
 
 				}
@@ -109,7 +114,8 @@ public class AudioRecordPresenter extends MVPPresenter<AudioRecordContract.View>
 			@Override
 			public void run() {
 				// 界面在前台时循环监听服务状态,并更新界面
-				while (!getView().isAtBack()) {
+				AudioRecordContract.View view = getView();
+				while (view != null && !view.isAtBack()) {
 					// 休眠一秒
 					try {
 						TimeUnit.SECONDS.sleep(1);
@@ -131,17 +137,37 @@ public class AudioRecordPresenter extends MVPPresenter<AudioRecordContract.View>
 		return StringUtils.parseFloat(String.format("%." + "" + digits + "f", num));
 	}
 
+	private long getFolderSize(File file) {
+		long size = 0;
+		try {
+			File[] fileList = file.listFiles();
+			for (int i = 0; i < fileList.length; i++) {
+				// 如果下面还有文件
+				if (fileList[i].isDirectory()) {
+					size = size + getFolderSize(fileList[i]);
+				} else {
+					size = size + fileList[i].length();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return size;
+	}
+
 	/**
 	 * 计算缓存大小
 	 */
 	private float calculateCache(Context context) {
 		String path = new File(Environment.getExternalStorageDirectory(),
-				context.getPackageName()).getPath() + File.separator +
-				"default";
+				context.getPackageName()).getPath();
 		LogUtil.i(TAG, "缓存路径-->" + path);
-		long totalSize = StorageUtils.getInstance(context).getTotalSize(path);
-		long availableSize = StorageUtils.getInstance(context).getAvailableSize(path);
-		long usedSize = totalSize - availableSize;
+//		long totalSize = StorageUtils.getInstance(context).getTotalSize(path);
+//		long availableSize = StorageUtils.getInstance(context).getAvailableSize(path);
+		long usedSize = getFolderSize(new File(path));
+//		LogUtil.i(TAG, "totalSize-->" + totalSize);
+//		LogUtil.i(TAG, "availableSize-->" + availableSize);
+		LogUtil.i(TAG, "usedSize-->" + usedSize);
 		float usedSizeFloat = roundFloat((float) usedSize / StorageUtils.VolumeConvert.MB_2_BYTE, 2);
 		LogUtil.i(TAG, "已用容量-->" + usedSizeFloat);
 		return usedSizeFloat;
@@ -159,11 +185,17 @@ public class AudioRecordPresenter extends MVPPresenter<AudioRecordContract.View>
 		final Handler checkHandler = new Handler() {
 			@Override
 			public void handleMessage(Message msg) {
+				AudioRecordContract.View view = getView();
 				switch (msg.what) {
 					case MSG_CALCULATE:
-						String text = String.format(context.getString(R.string.clear_cache1),
-								msg.obj + "MB");
-						getView().setSDCardButtonText(text);
+						if (view == null) return;
+						String text = context.getString(R.string.clear_cache);
+						float cacheSize = (float) msg.obj;
+						if (cacheSize > 0f) {
+							text = String.format(context.getString(R.string.clear_cache1),
+									msg.obj + "MB");
+						}
+						view.setSDCardButtonText(text);
 						break;
 
 				}
@@ -174,7 +206,8 @@ public class AudioRecordPresenter extends MVPPresenter<AudioRecordContract.View>
 			@Override
 			public void run() {
 				// 界面在前台时循环监听服务状态,并更新界面
-				while (!getView().isAtBack()) {
+				AudioRecordContract.View view = getView();
+				while (view != null && !view.isAtBack()) {
 
 					try {
 						TimeUnit.SECONDS.sleep(5);
@@ -199,7 +232,9 @@ public class AudioRecordPresenter extends MVPPresenter<AudioRecordContract.View>
 	private void startRecord(Context context) {
 		context.startService(intent);
 		context.bindService(intent, audioServiceConn, Context.BIND_AUTO_CREATE);
-		getView().setScanNowButtonText(context.getString(R.string.stop));
+		AudioRecordContract.View view = getView();
+		if (view != null)
+			view.setScanNowButtonText(context.getString(R.string.stop));
 	}
 
 	private void stopRecord(Context context) {
@@ -212,7 +247,9 @@ public class AudioRecordPresenter extends MVPPresenter<AudioRecordContract.View>
 		}
 		mAudioFeatureService = null;
 		context.stopService(intent);
-		getView().setScanNowButtonText(context.getString(R.string.record));
+		AudioRecordContract.View view = getView();
+		if (view != null)
+			view.setScanNowButtonText(context.getString(R.string.record));
 	}
 
 	/**
@@ -250,5 +287,15 @@ public class AudioRecordPresenter extends MVPPresenter<AudioRecordContract.View>
 				context.getPackageName()).getPath() + File.separator +
 				"default";
 		FileUtils.deleteDirectory(path);
+	}
+
+	/**
+	 * 跳转到会议模式界面
+	 */
+	@Override
+	public void toMeetingModeActivity() {
+		Intent intent = new Intent(context, MeetingModeActivity.class);
+		context.startActivity(intent);
+
 	}
 }

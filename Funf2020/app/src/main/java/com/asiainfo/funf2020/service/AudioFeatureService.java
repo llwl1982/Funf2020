@@ -1,4 +1,4 @@
-package com.asiainfo.funf2020;
+package com.asiainfo.funf2020.service;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -14,6 +14,8 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import com.asiainfo.funf2020.R;
+import com.asiainfo.funf2020.activity.AudioRecordActivity;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -90,12 +92,14 @@ public class AudioFeatureService extends Service implements Probe.DataListener {
 	}
 
 	private void startRecord() {
+		if (mAudioFeatureProbe == null) return;
 		mAudioFeatureProbe.registerListener(pipeline);
 		mAudioFeatureProbe.registerPassiveListener(this);
 		sendArchiveMessage();
 	}
 
 	private void stopRecord() {
+		if (mAudioFeatureProbe == null) return;
 		mAudioFeatureProbe.unregisterListener(pipeline);
 		mAudioFeatureProbe.unregisterPassiveListener(this);
 		mAudioFeatureProbe.stop();
