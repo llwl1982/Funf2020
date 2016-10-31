@@ -1,19 +1,27 @@
-package com.asiainfo.funf2020;
+package com.asiainfo.funf2020.service;
 
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.support.annotation.Nullable;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import com.ai2020lab.aiutils.common.LogUtils;
+import com.asiainfo.funf2020.R;
+import com.asiainfo.funf2020.activity.AudioRecordActivity;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -25,6 +33,7 @@ import edu.mit.media.funf.json.IJsonObject;
 import edu.mit.media.funf.pipeline.BasicPipeline;
 import edu.mit.media.funf.probe.Probe;
 import edu.mit.media.funf.probe.builtin.AudioFeaturesProbe;
+import edu.mit.media.funf.util.LogUtil;
 
 /**
  * 控制音频数据采集，归档和上传的Service，设置成前台服务，以尽量保证服务存活
@@ -49,6 +58,8 @@ public class AudioFeatureService extends Service implements Probe.DataListener {
 
 	private AudioHandler mAudioHandler;
 
+	/** 电话管理器对象 */
+	private TelephonyManager telManager;
 
 	// 同FunfManager的连接
 	private ServiceConnection funfManagerConn = new ServiceConnection() {
@@ -90,12 +101,16 @@ public class AudioFeatureService extends Service implements Probe.DataListener {
 	}
 
 	private void startRecord() {
+		LogUtils.i(TAG, "--开始录音--");
+		if (mAudioFeatureProbe == null) return;
 		mAudioFeatureProbe.registerListener(pipeline);
 		mAudioFeatureProbe.registerPassiveListener(this);
 		sendArchiveMessage();
 	}
 
 	private void stopRecord() {
+		LogUtils.i(TAG, "--停止录音--");
+		if (mAudioFeatureProbe == null) return;
 		mAudioFeatureProbe.unregisterListener(pipeline);
 		mAudioFeatureProbe.unregisterPassiveListener(this);
 		mAudioFeatureProbe.stop();
@@ -161,6 +176,8 @@ public class AudioFeatureService extends Service implements Probe.DataListener {
 	@Override
 	public void onCreate() {
 		super.onCreate();
+		// 初始化电话监听服务
+		initTelephonyManager();
 		mAudioHandler = new AudioHandler(this);
 
 		// 启动成为前台服务
@@ -194,6 +211,44 @@ public class AudioFeatureService extends Service implements Probe.DataListener {
 		startForeground(NOTIFICATION_ID, builder.build());
 	}
 
+	private PhoneStateListener telPhoneListener = new PhoneStateListener() {
+		// OFFHOOK状态在电话拨号的时候会回调多次
+		public void onCallStateChanged(int state, String incomingNumber) {
+
+			switch (state) {
+				// 电话响起
+				case TelephonyManager.CALL_STATE_RINGING:
+					LogUtils.i(TAG, "--电话响铃--");
+					stopRecord();
+					break;
+				// 接起电话
+				case TelephonyManager.CALL_STATE_OFFHOOK:
+					// System.out.println("对方电话-->" + incomingNumber);
+					LogUtils.i(TAG, "--电话接起--");
+					break;
+				// 无任何状态
+				case TelephonyManager.CALL_STATE_IDLE:
+					// 停止录音并通知界面
+					LogUtils.i(TAG, "--电话挂断--");
+					startRecord();
+					break;
+			}
+
+		}
+	};
+
+	/**
+	 * 初始化电话监听管理
+	 */
+	private void initTelephonyManager() {
+		telManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+		// 注册电话状态监听，在Service结束的时候注销掉
+		telManager.listen(telPhoneListener,
+				PhoneStateListener.LISTEN_CALL_STATE);
+	}
+
+
+
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 //		startRecord();
@@ -206,7 +261,8 @@ public class AudioFeatureService extends Service implements Probe.DataListener {
 		Log.i("AudioFeatureService", "--AudioFeatureService挂了");
 		// 结束前台服务
 		stopForeground(true);
-
+		// 移除电话监听
+		telManager.listen(telPhoneListener, PhoneStateListener.LISTEN_NONE);
 		// 解除绑定
 		unbindService(funfManagerConn);
 		stopRecord();

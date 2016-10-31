@@ -1,7 +1,8 @@
-package com.asiainfo.funf2020.app;
+package com.asiainfo.funf2020.base;
 
 import android.app.Application;
 
+import com.ai2020lab.aiutils.common.ResourcesUtils;
 import com.ai2020lab.aiutils.system.DeviceUtils;
 import edu.mit.media.funf.util.ShareUtils;
 
@@ -13,7 +14,7 @@ public class AIApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-
+	    ResourcesUtils.initContext(this);
         ShareUtils.setImei(DeviceUtils.getIMEI(this), this);
     }
 }

@@ -1,38 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.asiainfo.funf2020"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest package="com.asiainfo.funf2020"
+          xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Launching -->
-    <uses-permission android:name="android.permission.BATTERY_STATS" />
-    <!-- All probes -->
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
-    <!-- Storage -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <!-- Location probe -->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-    <!-- Wifi probe -->
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
+	<!-- Launching -->
+	<uses-permission android:name="android.permission.BATTERY_STATS"/>
+	<!-- All probes -->
+	<uses-permission android:name="android.permission.WAKE_LOCK"/>
+	<!-- Storage -->
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+	<!-- Location probe -->
+	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+	<!-- Wifi probe -->
+	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+	<uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
 
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.BLUETOOTH"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
-    <uses-permission android:name="android.permission.READ_CALENDAR"/>
-    <uses-permission android:name="android.permission.READ_CALL_LOG"/>
-    <uses-permission android:name="android.permission.READ_CONTACTS"/>
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
-    <uses-permission android:name="android.permission.READ_SMS"/>
-    <uses-permission android:name="android.permission.GET_TASKS"/>
-    <uses-permission android:name="android.permission.READ_SMS"/>
-    <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
-    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-    <uses-permission android:name="android.permission.READ_HISTORY_BOOKMARKS"/>
-    <uses-permission android:name="android.permission.WRITE_HISTORY_BOOKMARKS"/>
-    <uses-permission android:name="android.permission.CAMERA"/>
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+	<uses-permission android:name="android.permission.INTERNET"/>
+	<uses-permission android:name="android.permission.BLUETOOTH"/>
+	<uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+	<uses-permission android:name="android.permission.READ_CALENDAR"/>
+	<uses-permission android:name="android.permission.READ_CALL_LOG"/>
+	<uses-permission android:name="android.permission.READ_CONTACTS"/>
+	<uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+	<uses-permission android:name="android.permission.READ_SMS"/>
+	<uses-permission android:name="android.permission.GET_TASKS"/>
+	<uses-permission android:name="android.permission.READ_SMS"/>
+	<uses-permission android:name="android.permission.GET_ACCOUNTS"/>
+	<uses-permission android:name="android.permission.RECORD_AUDIO"/>
+	<uses-permission android:name="android.permission.READ_HISTORY_BOOKMARKS"/>
+	<uses-permission android:name="android.permission.WRITE_HISTORY_BOOKMARKS"/>
+	<uses-permission android:name="android.permission.CAMERA"/>
+	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
 
 	<uses-permission android:name="android.permission.CAMERA"/>
 	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
@@ -42,40 +42,42 @@
 	<uses-feature android:name="android.hardware.camera" android:required="true"/>
 	<uses-feature android:name="android.hardware.camera.autofocus"/>
 
-    <application
-        android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:supportsRtl="true"
-        android:theme="@style/AppTheme"
-        android:name=".app.AIApplication"
-        tools:replace="android:label">
-        <activity android:name=".MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+	<application
+		android:name=".base.AIApplication"
+		android:allowBackup="true"
+		android:icon="@mipmap/ic_launcher"
+		android:label="@string/app_name"
+		android:supportsRtl="true"
+		android:theme="@style/AppTheme"
+		tools:replace="android:label">
+		<activity android:name=".activity.AudioRecordActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN"/>
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity android:name=".AudioRecordActivity"/>
+				<category android:name="android.intent.category.LAUNCHER"/>
+			</intent-filter>
+		</activity>
+		<!--会议模式操作界面-->
+		<activity android:name=".activity.MeetingModeActivity"
+		          android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
 
-        <receiver android:name="edu.mit.media.funf.Launcher" android:enabled="true">
-            <intent-filter>
-                <action android:name="android.intent.action.BATTERY_CHANGED" />
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.DOCK_EVENT" />
-                <action android:name="android.intent.action.ACTION_SCREEN_ON" />
-                <action android:name="android.intent.action.USER_PRESENT" />
-            </intent-filter>
-        </receiver>
+		<receiver android:name="edu.mit.media.funf.Launcher" android:enabled="true">
+			<intent-filter>
+				<action android:name="android.intent.action.BATTERY_CHANGED"/>
+				<action android:name="android.intent.action.BOOT_COMPLETED"/>
+				<action android:name="android.intent.action.DOCK_EVENT"/>
+				<action android:name="android.intent.action.ACTION_SCREEN_ON"/>
+				<action android:name="android.intent.action.USER_PRESENT"/>
+			</intent-filter>
+		</receiver>
 
-        <service android:name="edu.mit.media.funf.FunfManager">
-            <meta-data android:name="default" android:value="@string/default_pipeline"/>
-        </service>
+		<service android:name="edu.mit.media.funf.FunfManager">
+			<meta-data android:name="default" android:value="@string/default_pipeline"/>
+		</service>
 
-	    <service android:name=".AudioFeatureService">
-	    </service>
+		<service android:name=".service.AudioFeatureService">
+		</service>
 
-    </application>
+	</application>
 
 </manifest>

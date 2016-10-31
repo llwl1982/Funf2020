@@ -1,4 +1,4 @@
-package com.asiainfo.funf2020;
+package com.asiainfo.funf2020.service;
 
 import com.asiainfo.funf2020.utils.AssetsUtils;
 

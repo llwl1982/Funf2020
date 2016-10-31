@@ -14,7 +14,12 @@
 	<string name="audio_capture_mfcc">点击按钮开始</string>
     <string name="record">开始</string>
     <string name="stop">停止</string>
+	<string name="clear_cache">清除缓存</string>
+	<string name="meeting_mode">会议模式</string>
+	<string name="clear_cache1" formatted="true">清除缓存(%s)</string>
 	<string name="read">点击按钮开始录音</string>
 	<string name="audio_capture">音频采集正在运行…</string>
-	<string name="content">试着大声说话,试着大声说话,试着大声说话,试着大声说话,试着大声说话</string>
+	<string name="prompt_request_upload_failure">请求失败，请重试</string>
+	<string name="double_tap_screen_start">00:10:01</string>
+	<string name="double_tap_screen_stop">00:10:02</string>
 </resources>
